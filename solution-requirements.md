@@ -13,7 +13,7 @@ The C# projects in this solution must target [.NET 8](https://dotnet.microsoft.c
 <TargetFramework>net8.0</TargetFramework>
 ```
 
-If you're having trouble developing .NET 8 applications, make sure you have the .NET SDK 6 installed by running the [dotnet command](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet) in the console:
+If you're having trouble developing .NET 8 applications, make sure you have the .NET SDK 8 installed by running the [dotnet command](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet) in the console:
 
 ```cmd
 C:\>dotnet --list-sdks
