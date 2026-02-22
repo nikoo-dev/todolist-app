@@ -7,20 +7,20 @@ This section describes the technical requirements related to the target platform
 
 ### Target Framework
 
-The C# projects in this solution must target [.NET 6](https://dotnet.microsoft.com/en-us/download/dotnet/6.0). When creating a C# project, ensure that the [target framework moniker](https://learn.microsoft.com/en-us/dotnet/standard/frameworks) is set to `net6.0` in a project file:
+The C# projects in this solution must target [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/6.0). When creating a C# project, ensure that the [target framework moniker](https://learn.microsoft.com/en-us/dotnet/standard/frameworks) is set to `net8.0` in a project file:
 
 ```xml
-<TargetFramework>net6.0</TargetFramework>
+<TargetFramework>net8.0</TargetFramework>
 ```
 
-If you're having trouble developing .NET 6 applications, make sure you have the .NET SDK 6 installed by running the [dotnet command](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet) in the console:
+If you're having trouble developing .NET 8 applications, make sure you have the .NET SDK 6 installed by running the [dotnet command](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet) in the console:
 
 ```cmd
 C:\>dotnet --list-sdks
-6.0.408 [C:\Program Files\dotnet\sdk]
+8.0.301 [C:\Program Files\dotnet\sdk]
 ```
 
-If you do not have the .NET SDK 6 installed, you can download the installer from the [Download .NET 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) page.
+If you do not have the .NET SDK 8 installed, you can download the installer from the [Download .NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) page.
 
 
 ### C# Projects
