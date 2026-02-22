@@ -7,7 +7,7 @@ This section describes the technical requirements related to the target platform
 
 ### Target Framework
 
-The C# projects in this solution must target [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/6.0). When creating a C# project, ensure that the [target framework moniker](https://learn.microsoft.com/en-us/dotnet/standard/frameworks) is set to `net8.0` in a project file:
+The C# projects in this solution must target [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0). When creating a C# project, ensure that the [target framework moniker](https://learn.microsoft.com/en-us/dotnet/standard/frameworks) is set to `net8.0` in a project file:
 
 ```xml
 <TargetFramework>net8.0</TargetFramework>
