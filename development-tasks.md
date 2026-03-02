@@ -77,14 +77,11 @@ The delivery plan contains a list of technical tasks distributed over the weeks 
 | T17  |        |        | +      |
 
 
-## Weekly Checklists
+## Checklists
 
-Use weekly checklists to track your weekly development progress.
+Use checklists to track your weekly development progress.
 
-
-### Week 1
-
-The developer's checklist for week 1:
+The developer's checklist:
 
 - [ ] T01: C# projects are created and added to the solution file; project dependencies as configured as expected.
 - [ ] T01: Built-in .NET code analysis tools are enabled in C# projects; StyleCop NuGet package is added as a dependency to all C# projects and configured properly.
@@ -92,27 +89,15 @@ The developer's checklist for week 1:
 - [ ] T03: Implement Epic 1 backend functionality in the *TodoListApp.WebApi* application.
 - [ ] T05: Implement Epic 2 backend functionality in the *TodoListApp.WebApi* application.
 - [ ] T07: Implement Epic 3 backend functionality in the *TodoListApp.WebApi* application.
-- [ ] All changes are committed and pushed to the remote repository.
-- [ ] There are no major or critical issues or blockers found during building the solution.
-
-
-### Week 2
-
-The developer's checklist for week 2:
-
+- [ ] _All changes are committed and pushed to the remote repository._
+- [ ] _There are no major or critical issues or blockers found during building the solution._
 - [ ] T04: Implement Epic 1 frontend functionality in the *TodoListApp.WebApp* application.
 - [ ] T06: Implement Epic 2 frontend functionality in the *TodoListApp.WebApp* application.
 - [ ] T08: Implement Epic 3 frontend functionality in the *TodoListApp.WebApp* application.
 - [ ] T09: Implement Epic 4 backend functionality in the *TodoListApp.WebApi* application.
 - [ ] T11: Implement Epic 5 backend functionality in the *TodoListApp.WebApi* application.
-- [ ] All changes are committed and pushed to the remote repository.
-- [ ] There are no major or critical issues or blockers found during building the solution.
-
-
-#### Week 3
-
-The developer's checklist for week 3:
-
+- [ ] _All changes are committed and pushed to the remote repository._
+- [ ] _There are no major or critical issues or blockers found during building the solution._
 - [ ] T10: Implement Epic 4 frontend functionality in the *TodoListApp.WebApp* application.
 - [ ] T12: Implement Epic 5 frontend functionality in the *TodoListApp.WebApp* application.
 - [ ] T13: Implement Epic 6 backend functionality in the *TodoListApp.WebApi* application.
@@ -120,5 +105,5 @@ The developer's checklist for week 3:
 - [ ] T15: Implement Epic 7 functionality in the *TodoListApp.WebApp* application.
 - [ ] T16: Implement Epic 8 frontend functionality in the *TodoListApp.WebApp* application.
 - [ ] T17: Implement Epic 8 frontend functionality in the *TodoListApp.WebApp* application.
-- [ ] All changes are committed and pushed to the remote repository.
-- [ ] There are no major or critical issues or blockers found during building the solution.
+- [ ] _All changes are committed and pushed to the remote repository._
+- [ ] _There are no major or critical issues or blockers found during building the solution._
