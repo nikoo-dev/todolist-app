@@ -2,7 +2,7 @@
 
 ## Development Tasks
 
-Development tasks are tasks with a technical description of what needs to be done. _The only development tasks T01-T04 have sub-tasks with details that can help you get started on the project_.
+Development tasks are tasks with a technical description of what needs to be done. The **only** development **tasks T01-T04** have sub-tasks with details that can help you get started on the project.
 
 * T01: Add and configure C# projects.
     * Create C# projects and add them to the solution file; configure project dependencies as expected.
@@ -53,7 +53,7 @@ Development tasks are tasks with a technical description of what needs to be don
 
 ## Checklists
 
-Use checklists to track your development progress.
+We recommend using checklists to track your development progress.
 
 The developer's checklist:
 
