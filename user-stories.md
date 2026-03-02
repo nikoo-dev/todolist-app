@@ -1,4 +1,4 @@
-# To-do List Application
+# To-Do List Application
 
 This document contains a list of [functional requirements](https://en.wikipedia.org/wiki/Functional_requirement) that the To-Do List application must meet. The requirements are described as [user stories](https://en.wikipedia.org/wiki/User_story), which are requirements expressed from the perspective of an end-user.
 
