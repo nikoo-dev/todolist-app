@@ -2,7 +2,7 @@
 
 ## Development Tasks
 
-Development tasks are tasks with a technical description of what needs to be done. The only development tasks T01-T04 have sub-tasks with details that can help you get started on the project.
+Development tasks are tasks with a technical description of what needs to be done. _The only development tasks T01-T04 have sub-tasks with details that can help you get started on the project_.
 
 * T01: Add and configure C# projects.
     * Create C# projects and add them to the solution file; configure project dependencies as expected.
@@ -10,7 +10,7 @@ Development tasks are tasks with a technical description of what needs to be don
 * T02: Add and configure `TodoListDbContext`.
     * Create a database context for the *TodoListDb* database named `TodoListDbContext` in the *TodoListApp.WebApi* project.
     * Configure `TodoListDbContext` as a dependency in *TodoListApp.WebApi* app's dependency injection container; the context must be initialized with a connection string added to the application config file.
-* T03: Implement Epic 1 [backend](https://en.wikipedia.org/wiki/Frontend_and_backend) functionality in the *TodoListApp.WebApi* application.
+* T03: Implement **Epic 1** [backend](https://en.wikipedia.org/wiki/Frontend_and_backend) functionality in the *TodoListApp.WebApi* application.
     * Add a new entity class named `TodoListEntity` to the *TodoListApp.WebApi* project; configure the entity as a DbSet<T> in the `TodoListDbContext` class.
     * Add a new service interface named `ITodoListDatabaseService` and a data class named `TodoList` to the *TodoListApp.WebApi* project.
     * Add a new service class named `TodoListDatabaseService` to the *TodoListApp.WebApi* project to manage to-do lists in the database; configure the service as a dependency in the *TodoListApp.WebApi* app.
@@ -37,20 +37,19 @@ Development tasks are tasks with a technical description of what needs to be don
     * US03: Add a new view to the *TodoList.WebApp* project and a new method to the `TodoListController` class to allow a user to delete an existing to-do list using the browser UI.
     * US04: Add a new method to the `TodoListWebApiService` to update an existing to-do list's data using the REST API.
     * US04: Add a new view to the *TodoList.WebApp* project and a new method to the `TodoListController` class to allow a user to update an existing to-do list's data using the browser UI.
-* T05: Implement Epic 2 backend functionality in the *TodoListApp.WebApi* application.
-* T06: Implement Epic 2 frontend functionality in the *TodoListApp.WebApp* application.
-* T07: Implement Epic 3 backend functionality in the *TodoListApp.WebApi* application.
-* T08: Implement Epic 3 frontend functionality in the *TodoListApp.WebApp* application.
-* T09: Implement Epic 4 backend functionality in the *TodoListApp.WebApi* application.
-* T10: Implement Epic 4 frontend functionality in the *TodoListApp.WebApp* application.
-* T11: Implement Epic 5 backend functionality in the *TodoListApp.WebApi* application.
-* T12: Implement Epic 5 frontend functionality in the *TodoListApp.WebApp* application.
-* T13: Implement Epic 6 backend functionality in the *TodoListApp.WebApi* application.
-* T14: Implement Epic 6 frontend functionality in the *TodoListApp.WebApp* application.
-* T15: Implement Epic 7 functionality in the *TodoListApp.WebApp* application.
-* T16: Implement Epic 8 frontend functionality in the *TodoListApp.WebApp* application.
+* T05: Implement **Epic 2** backend functionality in the *TodoListApp.WebApi* application.
+* T06: Implement **Epic 2** frontend functionality in the *TodoListApp.WebApp* application.
+* T07: Implement **Epic 3** backend functionality in the *TodoListApp.WebApi* application.
+* T08: Implement **Epic 3** frontend functionality in the *TodoListApp.WebApp* application.
+* T09: Implement **Epic 4** backend functionality in the *TodoListApp.WebApi* application.
+* T10: Implement **Epic 4** frontend functionality in the *TodoListApp.WebApp* application.
+* T11: Implement **Epic 5** backend functionality in the *TodoListApp.WebApi* application.
+* T12: Implement **Epic 5** frontend functionality in the *TodoListApp.WebApp* application.
+* T13: Implement **Epic 6** backend functionality in the *TodoListApp.WebApi* application.
+* T14: Implement **Epic 6** frontend functionality in the *TodoListApp.WebApp* application.
+* T15: Implement **Epic 7** functionality in the *TodoListApp.WebApp* application.
+* T16: Implement **Epic 8** frontend functionality in the *TodoListApp.WebApp* application.
 * T17: Design and implement good-looking browser UI.
-
 
 ## Checklists
 
