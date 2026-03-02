@@ -1,8 +1,8 @@
-# To-do List Application
+# To-Do List Application
 
 ## Functional Requirements
 
-The goal of the To-Do List application is to provide end-users with the ability to manage their to-do lists and tasks.
+The goal of the **To-Do List application** is to provide end-users with the ability to manage their to-do lists and tasks.
 
 The application users should be able to:
 * View a list of available to-do lists, manage them, and change their properties.
