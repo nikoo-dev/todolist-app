@@ -1,4 +1,4 @@
-# To-do List Application
+# To-Do List Application
 
 ## Development Tasks
 
@@ -52,34 +52,9 @@ Development tasks are tasks with a technical description of what needs to be don
 * T17: Design and implement good-looking browser UI.
 
 
-## Delivery Plan
-
-The delivery plan contains a list of technical tasks distributed over the weeks in which these tasks must be delivered.
-
-| Task | Week 1 | Week 2 | Week 3 |
-|------|--------|--------|--------|
-| T01  | +      |        |        |
-| T02  | +      |        |        |
-| T03  | +      |        |        |
-| T04  |        | +      |        |
-| T05  | +      |        |        |
-| T06  |        | +      |        |
-| T07  | +      |        |        |
-| T08  |        | +      |        |
-| T09  |        | +      |        |
-| T10  |        |        | +      |
-| T11  |        | +      |        |
-| T12  |        |        | +      |
-| T13  |        |        | +      |
-| T14  |        |        | +      |
-| T15  |        |        | +      |
-| T16  |        |        | +      |
-| T17  |        |        | +      |
-
-
 ## Checklists
 
-Use checklists to track your weekly development progress.
+Use checklists to track your development progress.
 
 The developer's checklist:
 
