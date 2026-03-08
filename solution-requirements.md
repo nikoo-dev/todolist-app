@@ -109,7 +109,7 @@ The [site map](https://en.wikipedia.org/wiki/Site_map) below shows how a user ca
 </ItemGroup>
 ```
 
-* If you use the Visual Studio, we recommend you install the [SonarLint for Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=SonarSource.SonarLintforVisualStudio2022) extension. The SonarLint extension detects all Sonar issues, and this would reduce the number of issues in the Quality phase when submitting the task in the AutoCode.
+* If you use the Visual Studio, we recommend you install the [SonarQube for Visual Studio](https://marketplace.visualstudio.com/items?itemName=SonarSource.SonarLintforVisualStudio2022) extension. The SonarLint extension detects all Sonar issues, and this would reduce the number of issues in the Quality phase when submitting the task in the AutoCode.
 
 
 ### Git
