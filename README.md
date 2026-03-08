@@ -63,12 +63,6 @@ The architecture of the application is described in the [Software Architecture](
 
 The requirements for the application are described in the [Solution Requirements](solution-requirements.md) document.
 
-
-## Delivery Plan
-
-The [delivery plan](delivery-plan.md) contains the list of technical tasks distributed over the weeks these tasks must be delivered.
-
-
 ## Project Evaluation
 
 The project is evaluated using both technical evaluation criteria and an assessment of the scope and quality of the implementation of user stories. Both technical evaluation criteria and criteria for user stories are described in [Project Evaluation](project-evaluation.md) document.
