@@ -1,0 +1,20 @@
+@model IReadOnlyList<TodoListApp.WebApp.Models.TagModel>
+@{
+    ViewData["Title"] = "Tags";
+}
+
+<h1 class="h3 mb-4">Tags</h1>
+
+<div class="card-panel">
+    @if (!this.Model.Any())
+    {
+        <p class="text-muted mb-0">No tags have been added yet.</p>
+    }
+    else
+    {
+        foreach (var tag in this.Model)
+        {
+            <a class="tag-pill" asp-controller="Tag" asp-action="Tasks" asp-route-id="@tag.Id">@tag.Name</a>
+        }
+    }
+</div>

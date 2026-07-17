@@ -1,0 +1,31 @@
+@model IReadOnlyList<TodoListApp.WebApp.Models.TagModel>
+@{
+    int taskId = this.ViewBag.TaskId;
+}
+
+<div class="card-panel">
+    <h2 class="h5">Tags</h2>
+    @if (!this.Model.Any())
+    {
+        <p class="text-muted">No tags yet.</p>
+    }
+    else
+    {
+        foreach (var tag in this.Model)
+        {
+            <span class="tag-pill">
+                <a asp-controller="Tag" asp-action="Tasks" asp-route-id="@tag.Id" class="text-decoration-none">@tag.Name</a>
+                <form asp-controller="Tag" asp-action="RemoveFromTask" method="post" class="d-inline">
+                    <input type="hidden" name="taskId" value="@taskId" />
+                    <input type="hidden" name="tagId" value="@tag.Id" />
+                    <button type="submit" class="btn btn-link btn-sm p-0 ms-1 text-danger" title="Remove tag">&times;</button>
+                </form>
+            </span>
+        }
+    }
+    <form asp-controller="Tag" asp-action="AddToTask" method="post" class="d-flex gap-2 mt-3">
+        <input type="hidden" name="taskId" value="@taskId" />
+        <input type="text" name="tagName" class="form-control form-control-sm" placeholder="New tag" maxlength="100" required />
+        <button type="submit" class="btn btn-outline-primary btn-sm">Add Tag</button>
+    </form>
+</div>

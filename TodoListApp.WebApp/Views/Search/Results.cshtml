@@ -1,0 +1,49 @@
+@model TodoListApp.WebApp.Models.PagedResult<TodoListApp.WebApp.Models.TodoTask>
+@{
+    ViewData["Title"] = "Search Results";
+    string? title = this.ViewBag.Title;
+    DateTime? createdDate = this.ViewBag.CreatedDate;
+    DateTime? dueDate = this.ViewBag.DueDate;
+}
+
+<p><a asp-controller="Search" asp-action="Index">&larr; New Search</a></p>
+
+<h1 class="h3 mb-4">Search Results</h1>
+
+@if (!this.Model.Items.Any())
+{
+    <div class="card-panel empty-state">
+        <p>No tasks match your search criteria.</p>
+    </div>
+}
+else
+{
+    foreach (var task in this.Model.Items)
+    {
+        <div class="list-item-card d-flex justify-content-between align-items-center @(task.IsOverdue ? "task-overdue" : string.Empty)">
+            <div>
+                <a class="item-title" asp-controller="TodoTask" asp-action="Details" asp-route-id="@task.Id">@task.Title</a>
+                @if (task.IsOverdue)
+                {
+                    <span class="badge bg-danger ms-2">Overdue</span>
+                }
+                <div class="text-muted small">@task.TodoListTitle &middot; Due @task.DueDate.ToString("d")</div>
+                <span class="badge badge-status-@task.Status.ToString().ToLowerInvariant() mt-1">@task.Status</span>
+            </div>
+        </div>
+    }
+
+    <partial name="_Pagination" model="@(new TodoListApp.WebApp.ViewModels.PaginationViewModel
+             {
+                 Controller = "Search",
+                 Action = "Results",
+                 CurrentPage = this.Model.PageNumber,
+                 TotalPages = this.Model.TotalPages,
+                 RouteValues = new Microsoft.AspNetCore.Routing.RouteValueDictionary
+                 {
+                     ["title"] = title,
+                     ["createdDate"] = createdDate?.ToString("yyyy-MM-dd"),
+                     ["dueDate"] = dueDate?.ToString("yyyy-MM-dd"),
+                 },
+             })" />
+}

@@ -1,0 +1,24 @@
+@model TodoListApp.WebApp.Models.SearchModel
+@{
+    ViewData["Title"] = "Search Tasks";
+}
+
+<h1 class="h3 mb-4">Search Tasks</h1>
+
+<div class="card-panel">
+    <form asp-controller="Search" asp-action="Results" method="get">
+        <div class="mb-3">
+            <label asp-for="Title" class="form-label"></label>
+            <input asp-for="Title" class="form-control" placeholder="Text in the task title" />
+        </div>
+        <div class="mb-3">
+            <label asp-for="CreatedDate" class="form-label"></label>
+            <input asp-for="CreatedDate" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label asp-for="DueDate" class="form-label"></label>
+            <input asp-for="DueDate" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+</div>

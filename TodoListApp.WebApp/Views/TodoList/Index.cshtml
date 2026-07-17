@@ -1,0 +1,42 @@
+@model TodoListApp.WebApp.Models.PagedResult<TodoListApp.WebApp.Models.TodoList>
+@{
+    ViewData["Title"] = "My To-Do Lists";
+}
+
+<div class="page-header">
+    <h1 class="h3 mb-0">My To-Do Lists</h1>
+    <a asp-controller="TodoList" asp-action="Add" class="btn btn-primary">+ New To-Do List</a>
+</div>
+
+@if (!this.Model.Items.Any())
+{
+    <div class="card-panel empty-state">
+        <p>You don't have any to-do lists yet.</p>
+        <a asp-controller="TodoList" asp-action="Add" class="btn btn-primary">Create your first to-do list</a>
+    </div>
+}
+else
+{
+    foreach (var todoList in this.Model.Items)
+    {
+        <div class="list-item-card d-flex justify-content-between align-items-center">
+            <div>
+                <a class="item-title" asp-controller="TodoTask" asp-action="Index" asp-route-todoListId="@todoList.Id">@todoList.Title</a>
+                <div class="text-muted small">@todoList.Description</div>
+                <span class="badge bg-secondary mt-1">@todoList.TaskCount task(s)</span>
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-secondary btn-sm" asp-controller="TodoList" asp-action="Edit" asp-route-id="@todoList.Id">Edit</a>
+                <a class="btn btn-outline-danger btn-sm" asp-controller="TodoList" asp-action="Delete" asp-route-id="@todoList.Id">Delete</a>
+            </div>
+        </div>
+    }
+
+    <partial name="_Pagination" model="@(new TodoListApp.WebApp.ViewModels.PaginationViewModel
+             {
+                 Controller = "TodoList",
+                 Action = "Index",
+                 CurrentPage = this.Model.PageNumber,
+                 TotalPages = this.Model.TotalPages,
+             })" />
+}

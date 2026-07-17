@@ -1,0 +1,76 @@
+@model TodoListApp.WebApp.Models.PagedResult<TodoListApp.WebApp.Models.TodoTask>
+@{
+    ViewData["Title"] = "Assigned Tasks";
+    string statusFilter = this.ViewBag.StatusFilter;
+    string sortBy = this.ViewBag.SortBy;
+}
+
+<h1 class="h3 mb-4">Assigned Tasks</h1>
+
+<div class="card-panel">
+    <form asp-controller="AssignedTasks" asp-action="Index" method="get" class="row g-3 align-items-end">
+        <div class="col-auto">
+            <label for="statusFilter" class="form-label">Status</label>
+            <select id="statusFilter" name="statusFilter" class="form-select" onchange="this.form.submit()">
+                <option value="Active" selected="@(statusFilter == "Active")">Active</option>
+                <option value="All" selected="@(statusFilter == "All")">All</option>
+                <option value="NotStarted" selected="@(statusFilter == "NotStarted")">Not Started</option>
+                <option value="InProgress" selected="@(statusFilter == "InProgress")">In Progress</option>
+                <option value="Completed" selected="@(statusFilter == "Completed")">Completed</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <label for="sortBy" class="form-label">Sort by</label>
+            <select id="sortBy" name="sortBy" class="form-select" onchange="this.form.submit()">
+                <option value="dueDate" selected="@(sortBy == "dueDate")">Due Date</option>
+                <option value="title" selected="@(sortBy == "title")">Task Name</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <noscript><button type="submit" class="btn btn-outline-secondary">Apply</button></noscript>
+        </div>
+    </form>
+</div>
+
+@if (!this.Model.Items.Any())
+{
+    <div class="card-panel empty-state">
+        <p>No tasks match the selected filter.</p>
+    </div>
+}
+else
+{
+    foreach (var task in this.Model.Items)
+    {
+        <div class="list-item-card d-flex justify-content-between align-items-center @(task.IsOverdue ? "task-overdue" : string.Empty)">
+            <div>
+                <a class="item-title" asp-controller="TodoTask" asp-action="Details" asp-route-id="@task.Id">@task.Title</a>
+                @if (task.IsOverdue)
+                {
+                    <span class="badge bg-danger ms-2">Overdue</span>
+                }
+                <div class="text-muted small">@task.TodoListTitle &middot; Due @task.DueDate.ToString("d")</div>
+            </div>
+            <form asp-controller="AssignedTasks" asp-action="ChangeStatus" method="post" class="d-flex align-items-center gap-2">
+                <input type="hidden" name="id" value="@task.Id" />
+                <input type="hidden" name="statusFilter" value="@statusFilter" />
+                <input type="hidden" name="sortBy" value="@sortBy" />
+                <input type="hidden" name="pageNumber" value="@this.Model.PageNumber" />
+                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="NotStarted" selected="@(task.Status == TodoListApp.WebApp.Models.TodoTaskStatus.NotStarted)">Not Started</option>
+                    <option value="InProgress" selected="@(task.Status == TodoListApp.WebApp.Models.TodoTaskStatus.InProgress)">In Progress</option>
+                    <option value="Completed" selected="@(task.Status == TodoListApp.WebApp.Models.TodoTaskStatus.Completed)">Completed</option>
+                </select>
+            </form>
+        </div>
+    }
+
+    <partial name="_Pagination" model="@(new TodoListApp.WebApp.ViewModels.PaginationViewModel
+             {
+                 Controller = "AssignedTasks",
+                 Action = "Index",
+                 CurrentPage = this.Model.PageNumber,
+                 TotalPages = this.Model.TotalPages,
+                 RouteValues = new Microsoft.AspNetCore.Routing.RouteValueDictionary { ["statusFilter"] = statusFilter, ["sortBy"] = sortBy },
+             })" />
+}

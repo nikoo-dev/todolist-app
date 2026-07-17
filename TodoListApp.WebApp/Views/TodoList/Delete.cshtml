@@ -1,0 +1,14 @@
+@model TodoListApp.WebApp.Models.TodoList
+@{
+    ViewData["Title"] = "Delete To-Do List";
+}
+
+<h1 class="h3 mb-4">Delete To-Do List</h1>
+
+<div class="card-panel">
+    <p>Are you sure you want to delete <strong>@this.Model.Title</strong>? This will also delete all @this.Model.TaskCount task(s) in this list.</p>
+    <form asp-controller="TodoList" asp-action="Delete" asp-route-id="@this.Model.Id" method="post">
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a asp-controller="TodoList" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div>

@@ -1,0 +1,43 @@
+@model TodoListApp.WebApp.Models.TodoTaskModel
+@{
+    ViewData["Title"] = this.Model.Title;
+}
+
+<p><a asp-controller="TodoTask" asp-action="Index" asp-route-todoListId="@this.Model.TodoListId">&larr; @this.Model.TodoListTitle</a></p>
+
+<div class="page-header">
+    <h1 class="h3 mb-0">
+        @this.Model.Title
+        @if (this.Model.IsOverdue)
+        {
+            <span class="badge bg-danger ms-2">Overdue</span>
+        }
+    </h1>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" asp-controller="TodoTask" asp-action="Edit" asp-route-id="@this.Model.Id">Edit</a>
+        <a class="btn btn-outline-danger" asp-controller="TodoTask" asp-action="Delete" asp-route-id="@this.Model.Id">Delete</a>
+    </div>
+</div>
+
+<div class="card-panel @(this.Model.IsOverdue ? "task-overdue" : string.Empty)">
+    <dl class="row mb-0">
+        <dt class="col-sm-3">Status</dt>
+        <dd class="col-sm-9"><span class="badge badge-status-@this.Model.Status.ToString().ToLowerInvariant()">@this.Model.Status</span></dd>
+
+        <dt class="col-sm-3">Description</dt>
+        <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(this.Model.Description) ? "(no description)" : this.Model.Description)</dd>
+
+        <dt class="col-sm-3">Created</dt>
+        <dd class="col-sm-9">@this.Model.CreatedDate.ToString("g")</dd>
+
+        <dt class="col-sm-3">Due Date</dt>
+        <dd class="col-sm-9">@this.Model.DueDate.ToString("d")</dd>
+
+        <dt class="col-sm-3">Assigned To</dt>
+        <dd class="col-sm-9">@this.Model.AssigneeName</dd>
+    </dl>
+</div>
+
+@await Component.InvokeAsync("TaskTags", new { taskId = this.Model.Id })
+
+@await Component.InvokeAsync("TaskComments", new { taskId = this.Model.Id })

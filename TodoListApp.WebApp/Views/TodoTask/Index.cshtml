@@ -1,0 +1,50 @@
+@model TodoListApp.WebApp.Models.PagedResult<TodoListApp.WebApp.Models.TodoTask>
+@{
+    ViewData["Title"] = this.ViewBag.TodoListTitle;
+    int todoListId = this.ViewBag.TodoListId;
+}
+
+<p><a asp-controller="TodoList" asp-action="Index">&larr; My To-Do Lists</a></p>
+
+<div class="page-header">
+    <h1 class="h3 mb-0">@this.ViewBag.TodoListTitle</h1>
+    <a asp-controller="TodoTask" asp-action="Add" asp-route-todoListId="@todoListId" class="btn btn-primary">+ New Task</a>
+</div>
+
+@if (!this.Model.Items.Any())
+{
+    <div class="card-panel empty-state">
+        <p>This to-do list doesn't have any tasks yet.</p>
+        <a asp-controller="TodoTask" asp-action="Add" asp-route-todoListId="@todoListId" class="btn btn-primary">Add your first task</a>
+    </div>
+}
+else
+{
+    foreach (var task in this.Model.Items)
+    {
+        <div class="list-item-card d-flex justify-content-between align-items-center @(task.IsOverdue ? "task-overdue" : string.Empty)">
+            <div>
+                <a class="item-title" asp-controller="TodoTask" asp-action="Details" asp-route-id="@task.Id">@task.Title</a>
+                @if (task.IsOverdue)
+                {
+                    <span class="badge bg-danger ms-2">Overdue</span>
+                }
+                <div class="text-muted small">Due @task.DueDate.ToString("d")</div>
+                <span class="badge badge-status-@task.Status.ToString().ToLowerInvariant() mt-1">@task.Status</span>
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-secondary btn-sm" asp-controller="TodoTask" asp-action="Edit" asp-route-id="@task.Id">Edit</a>
+                <a class="btn btn-outline-danger btn-sm" asp-controller="TodoTask" asp-action="Delete" asp-route-id="@task.Id">Delete</a>
+            </div>
+        </div>
+    }
+
+    <partial name="_Pagination" model="@(new TodoListApp.WebApp.ViewModels.PaginationViewModel
+             {
+                 Controller = "TodoTask",
+                 Action = "Index",
+                 CurrentPage = this.Model.PageNumber,
+                 TotalPages = this.Model.TotalPages,
+                 RouteValues = new Microsoft.AspNetCore.Routing.RouteValueDictionary { ["todoListId"] = todoListId },
+             })" />
+}

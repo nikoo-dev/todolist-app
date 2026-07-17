@@ -1,0 +1,37 @@
+@model TodoListApp.WebApp.Models.TodoTaskModel
+@{
+    ViewData["Title"] = "Edit Task";
+}
+
+<h1 class="h3 mb-4">Edit Task</h1>
+
+<div class="card-panel">
+    <form asp-controller="TodoTask" asp-action="Edit" asp-route-id="@this.Model.Id" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <div class="mb-3">
+            <label asp-for="Title" class="form-label"></label>
+            <input asp-for="Title" class="form-control" />
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label"></label>
+            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="DueDate" class="form-label"></label>
+            <input asp-for="DueDate" class="form-control" />
+            <span asp-validation-for="DueDate" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Status" class="form-label"></label>
+            <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<TodoListApp.WebApp.Models.TodoTaskStatus>()"></select>
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a asp-controller="TodoTask" asp-action="Details" asp-route-id="@this.Model.Id" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
