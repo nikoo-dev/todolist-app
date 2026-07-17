@@ -29,10 +29,15 @@ public class ExceptionHandlingMiddleware
     /// </summary>
     /// <param name="context">The current HTTP context.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    public async Task InvokeAsync(HttpContext context)
+    public Task InvokeAsync(HttpContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
 
+        return this.InvokeInternalAsync(context);
+    }
+
+    private async Task InvokeInternalAsync(HttpContext context)
+    {
         try
         {
             await this.next(context);

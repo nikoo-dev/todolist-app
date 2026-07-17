@@ -21,8 +21,11 @@ public class TodoListDatabaseServiceTests
         var service = new TodoListDatabaseService(context);
         var page = await service.GetTodoListsAsync(OwnerId, pageNumber: 1, pageSize: 10);
 
-        Assert.That(page.TotalCount, Is.EqualTo(1));
-        Assert.That(page.Items.Single().Title, Is.EqualTo("Mine"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(page.TotalCount, Is.EqualTo(1));
+            Assert.That(page.Items.Single().Title, Is.EqualTo("Mine"));
+        });
     }
 
     [Test]
@@ -39,8 +42,11 @@ public class TodoListDatabaseServiceTests
         var service = new TodoListDatabaseService(context);
         var page = await service.GetTodoListsAsync(OwnerId, pageNumber: 2, pageSize: 2);
 
-        Assert.That(page.TotalCount, Is.EqualTo(5));
-        Assert.That(page.Items, Has.Count.EqualTo(2));
+        Assert.Multiple(() =>
+        {
+            Assert.That(page.TotalCount, Is.EqualTo(5));
+            Assert.That(page.Items, Has.Count.EqualTo(2));
+        });
     }
 
     [Test]
@@ -122,9 +128,13 @@ public class TodoListDatabaseServiceTests
 
         var service = new TodoListDatabaseService(context);
         var deleted = await service.DeleteTodoListAsync(entity.Id, OwnerId);
+        var storedList = await context.TodoLists.FindAsync(entity.Id);
 
-        Assert.That(deleted, Is.False);
-        Assert.That(await context.TodoLists.FindAsync(entity.Id), Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(deleted, Is.False);
+            Assert.That(storedList, Is.Not.Null);
+        });
     }
 
     [Test]
@@ -137,8 +147,12 @@ public class TodoListDatabaseServiceTests
 
         var service = new TodoListDatabaseService(context);
         var deleted = await service.DeleteTodoListAsync(entity.Id, OwnerId);
+        var storedList = await context.TodoLists.FindAsync(entity.Id);
 
-        Assert.That(deleted, Is.True);
-        Assert.That(await context.TodoLists.FindAsync(entity.Id), Is.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(deleted, Is.True);
+            Assert.That(storedList, Is.Null);
+        });
     }
 }

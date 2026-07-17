@@ -70,10 +70,46 @@ public class CommentController : ControllerBase
     /// <param name="model">The comment data.</param>
     /// <returns>The added comment.</returns>
     [HttpPost("tasks/{taskId:int}/comments")]
-    public async Task<ActionResult<CommentModel>> AddComment(int taskId, [FromBody] CommentModel model)
+    public Task<ActionResult<CommentModel>> AddComment(int taskId, [FromBody] CommentModel model)
     {
         ArgumentNullException.ThrowIfNull(model);
 
+        return this.AddCommentInternalAsync(taskId, model);
+    }
+
+    /// <summary>
+    /// Updates an existing comment. Allowed for the to-do list owner or the comment's own author.
+    /// </summary>
+    /// <param name="id">The identifier of the comment.</param>
+    /// <param name="model">The updated comment data.</param>
+    /// <returns>No content if the update succeeded.</returns>
+    [HttpPut("comments/{id:int}")]
+    public Task<IActionResult> UpdateComment(int id, [FromBody] CommentModel model)
+    {
+        ArgumentNullException.ThrowIfNull(model);
+
+        return this.UpdateCommentInternalAsync(id, model);
+    }
+
+    /// <summary>
+    /// Deletes an existing comment. Allowed for the to-do list owner or the comment's own author.
+    /// </summary>
+    /// <param name="id">The identifier of the comment.</param>
+    /// <returns>No content if the delete succeeded.</returns>
+    [HttpDelete("comments/{id:int}")]
+    public async Task<IActionResult> DeleteComment(int id)
+    {
+        var deleted = await this.commentService.DeleteCommentAsync(id, this.CurrentUserId);
+        if (!deleted)
+        {
+            return this.NotFound();
+        }
+
+        return this.NoContent();
+    }
+
+    private async Task<ActionResult<CommentModel>> AddCommentInternalAsync(int taskId, CommentModel model)
+    {
         if (!this.ModelState.IsValid)
         {
             return this.BadRequest(this.ModelState);
@@ -88,17 +124,8 @@ public class CommentController : ControllerBase
         return this.CreatedAtAction(nameof(this.GetComments), new { taskId }, comment);
     }
 
-    /// <summary>
-    /// Updates an existing comment. Allowed for the to-do list owner or the comment's own author.
-    /// </summary>
-    /// <param name="id">The identifier of the comment.</param>
-    /// <param name="model">The updated comment data.</param>
-    /// <returns>No content if the update succeeded.</returns>
-    [HttpPut("comments/{id:int}")]
-    public async Task<IActionResult> UpdateComment(int id, [FromBody] CommentModel model)
+    private async Task<IActionResult> UpdateCommentInternalAsync(int id, CommentModel model)
     {
-        ArgumentNullException.ThrowIfNull(model);
-
         if (!this.ModelState.IsValid)
         {
             return this.BadRequest(this.ModelState);
@@ -106,23 +133,6 @@ public class CommentController : ControllerBase
 
         var updated = await this.commentService.UpdateCommentAsync(id, this.CurrentUserId, model.Text);
         if (!updated)
-        {
-            return this.NotFound();
-        }
-
-        return this.NoContent();
-    }
-
-    /// <summary>
-    /// Deletes an existing comment. Allowed for the to-do list owner or the comment's own author.
-    /// </summary>
-    /// <param name="id">The identifier of the comment.</param>
-    /// <returns>No content if the delete succeeded.</returns>
-    [HttpDelete("comments/{id:int}")]
-    public async Task<IActionResult> DeleteComment(int id)
-    {
-        var deleted = await this.commentService.DeleteCommentAsync(id, this.CurrentUserId);
-        if (!deleted)
         {
             return this.NotFound();
         }

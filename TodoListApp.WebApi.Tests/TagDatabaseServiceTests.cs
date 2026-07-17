@@ -21,9 +21,13 @@ public class TagDatabaseServiceTests
 
         var service = new TagDatabaseService(context);
         var tag = await service.AddTagToTaskAsync(task.Id, OwnerId, "urgent");
+        var tagCount = await context.Tags.CountAsync(t => t.Name == "urgent");
 
-        Assert.That(tag, Is.Not.Null);
-        Assert.That(await context.Tags.CountAsync(t => t.Name == "urgent"), Is.EqualTo(1));
+        Assert.Multiple(() =>
+        {
+            Assert.That(tag, Is.Not.Null);
+            Assert.That(tagCount, Is.EqualTo(1));
+        });
     }
 
     [Test]
@@ -78,9 +82,14 @@ public class TagDatabaseServiceTests
         var tag = await service.AddTagToTaskAsync(task.Id, OwnerId, "urgent");
 
         var removed = await service.RemoveTagFromTaskAsync(task.Id, tag!.Id, OwnerId);
+        var storedTag = await context.Tags.FindAsync(tag.Id);
 
-        Assert.That(removed, Is.True);
-        Assert.That(await context.Tags.FindAsync(tag.Id), Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(removed, Is.True);
+            Assert.That(storedTag, Is.Not.Null);
+        });
+
         var tags = await service.GetTagsForTaskAsync(task.Id, OwnerId);
         Assert.That(tags, Is.Empty);
     }
@@ -109,8 +118,11 @@ public class TagDatabaseServiceTests
         var strangerTags = await service.GetAllTagsAsync(StrangerId);
 
         var expectedNames = new[] { "shared" };
-        Assert.That(ownerTags.Select(t => t.Name), Is.EqualTo(expectedNames));
-        Assert.That(strangerTags, Is.Empty);
+        Assert.Multiple(() =>
+        {
+            Assert.That(ownerTags.Select(t => t.Name), Is.EqualTo(expectedNames));
+            Assert.That(strangerTags, Is.Empty);
+        });
     }
 
     private static async Task<TodoTaskEntity> SeedAccessibleTaskAsync(TodoListDbContext context)

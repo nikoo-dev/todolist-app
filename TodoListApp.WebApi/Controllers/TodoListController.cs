@@ -83,26 +83,11 @@ public class TodoListController : ControllerBase
     /// <param name="model">The to-do list data.</param>
     /// <returns>The added to-do list.</returns>
     [HttpPost]
-    public async Task<ActionResult<TodoListModel>> AddTodoList([FromBody] TodoListModel model)
+    public Task<ActionResult<TodoListModel>> AddTodoList([FromBody] TodoListModel model)
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        if (!this.ModelState.IsValid)
-        {
-            return this.BadRequest(this.ModelState);
-        }
-
-        var userId = this.CurrentUserId;
-        var todoList = await this.todoListService.AddTodoListAsync(new Models.TodoList
-        {
-            Title = model.Title,
-            Description = model.Description,
-            OwnerId = userId,
-        });
-
-        this.logger.TodoListCreated(todoList.Id, userId);
-
-        return this.CreatedAtAction(nameof(this.GetTodoList), new { id = todoList.Id }, ToApiModel(todoList));
+        return this.AddTodoListInternalAsync(model);
     }
 
     /// <summary>
@@ -112,29 +97,11 @@ public class TodoListController : ControllerBase
     /// <param name="model">The updated to-do list data.</param>
     /// <returns>No content if the update succeeded.</returns>
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> UpdateTodoList(int id, [FromBody] TodoListModel model)
+    public Task<IActionResult> UpdateTodoList(int id, [FromBody] TodoListModel model)
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        if (!this.ModelState.IsValid)
-        {
-            return this.BadRequest(this.ModelState);
-        }
-
-        var updated = await this.todoListService.UpdateTodoListAsync(new Models.TodoList
-        {
-            Id = id,
-            Title = model.Title,
-            Description = model.Description,
-            OwnerId = this.CurrentUserId,
-        });
-
-        if (!updated)
-        {
-            return this.NotFound();
-        }
-
-        return this.NoContent();
+        return this.UpdateTodoListInternalAsync(id, model);
     }
 
     /// <summary>
@@ -164,4 +131,47 @@ public class TodoListController : ControllerBase
         Description = todoList.Description,
         TaskCount = todoList.TaskCount,
     };
+
+    private async Task<ActionResult<TodoListModel>> AddTodoListInternalAsync(TodoListModel model)
+    {
+        if (!this.ModelState.IsValid)
+        {
+            return this.BadRequest(this.ModelState);
+        }
+
+        var userId = this.CurrentUserId;
+        var todoList = await this.todoListService.AddTodoListAsync(new Models.TodoList
+        {
+            Title = model.Title,
+            Description = model.Description,
+            OwnerId = userId,
+        });
+
+        this.logger.TodoListCreated(todoList.Id, userId);
+
+        return this.CreatedAtAction(nameof(this.GetTodoList), new { id = todoList.Id }, ToApiModel(todoList));
+    }
+
+    private async Task<IActionResult> UpdateTodoListInternalAsync(int id, TodoListModel model)
+    {
+        if (!this.ModelState.IsValid)
+        {
+            return this.BadRequest(this.ModelState);
+        }
+
+        var updated = await this.todoListService.UpdateTodoListAsync(new Models.TodoList
+        {
+            Id = id,
+            Title = model.Title,
+            Description = model.Description,
+            OwnerId = this.CurrentUserId,
+        });
+
+        if (!updated)
+        {
+            return this.NotFound();
+        }
+
+        return this.NoContent();
+    }
 }

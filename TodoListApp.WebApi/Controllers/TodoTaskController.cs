@@ -91,35 +91,11 @@ public class TodoTaskController : ControllerBase
     /// <param name="model">The task data.</param>
     /// <returns>The added task.</returns>
     [HttpPost("todolists/{todoListId:int}/tasks")]
-    public async Task<ActionResult<TodoTaskModel>> AddTask(int todoListId, [FromBody] TodoTaskModel model)
+    public Task<ActionResult<TodoTaskModel>> AddTask(int todoListId, [FromBody] TodoTaskModel model)
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        if (!this.ModelState.IsValid)
-        {
-            return this.BadRequest(this.ModelState);
-        }
-
-        var userId = this.CurrentUserId;
-        var task = await this.taskService.AddTaskAsync(
-            new Models.TodoTask
-            {
-                Title = model.Title,
-                Description = model.Description,
-                DueDate = model.DueDate,
-                Status = model.Status,
-                TodoListId = todoListId,
-            },
-            userId);
-
-        if (task is null)
-        {
-            return this.NotFound();
-        }
-
-        this.logger.TaskCreated(task.Id, todoListId, userId);
-
-        return this.CreatedAtAction(nameof(this.GetTask), new { id = task.Id }, ToApiModel(task));
+        return this.AddTaskInternalAsync(todoListId, model);
     }
 
     /// <summary>
@@ -129,33 +105,11 @@ public class TodoTaskController : ControllerBase
     /// <param name="model">The updated task data.</param>
     /// <returns>No content if the update succeeded.</returns>
     [HttpPut("tasks/{id:int}")]
-    public async Task<IActionResult> UpdateTask(int id, [FromBody] TodoTaskModel model)
+    public Task<IActionResult> UpdateTask(int id, [FromBody] TodoTaskModel model)
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        if (!this.ModelState.IsValid)
-        {
-            return this.BadRequest(this.ModelState);
-        }
-
-        var updated = await this.taskService.UpdateTaskAsync(
-            new Models.TodoTask
-            {
-                Id = id,
-                Title = model.Title,
-                Description = model.Description,
-                DueDate = model.DueDate,
-                Status = model.Status,
-                AssigneeId = model.AssigneeId,
-            },
-            this.CurrentUserId);
-
-        if (!updated)
-        {
-            return this.NotFound();
-        }
-
-        return this.NoContent();
+        return this.UpdateTaskInternalAsync(id, model);
     }
 
     /// <summary>
@@ -276,4 +230,60 @@ public class TodoTaskController : ControllerBase
         TagCount = task.TagCount,
         CommentCount = task.CommentCount,
     };
+
+    private async Task<ActionResult<TodoTaskModel>> AddTaskInternalAsync(int todoListId, TodoTaskModel model)
+    {
+        if (!this.ModelState.IsValid)
+        {
+            return this.BadRequest(this.ModelState);
+        }
+
+        var userId = this.CurrentUserId;
+        var task = await this.taskService.AddTaskAsync(
+            new Models.TodoTask
+            {
+                Title = model.Title,
+                Description = model.Description,
+                DueDate = model.DueDate,
+                Status = model.Status,
+                TodoListId = todoListId,
+            },
+            userId);
+
+        if (task is null)
+        {
+            return this.NotFound();
+        }
+
+        this.logger.TaskCreated(task.Id, todoListId, userId);
+
+        return this.CreatedAtAction(nameof(this.GetTask), new { id = task.Id }, ToApiModel(task));
+    }
+
+    private async Task<IActionResult> UpdateTaskInternalAsync(int id, TodoTaskModel model)
+    {
+        if (!this.ModelState.IsValid)
+        {
+            return this.BadRequest(this.ModelState);
+        }
+
+        var updated = await this.taskService.UpdateTaskAsync(
+            new Models.TodoTask
+            {
+                Id = id,
+                Title = model.Title,
+                Description = model.Description,
+                DueDate = model.DueDate,
+                Status = model.Status,
+                AssigneeId = model.AssigneeId,
+            },
+            this.CurrentUserId);
+
+        if (!updated)
+        {
+            return this.NotFound();
+        }
+
+        return this.NoContent();
+    }
 }

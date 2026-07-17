@@ -125,9 +125,13 @@ public class CommentDatabaseServiceTests
         var added = await service.AddCommentAsync(task.Id, AssigneeId, "Original text");
 
         var deleted = await service.DeleteCommentAsync(added!.Id, StrangerId);
+        var storedComment = await context.Comments.FindAsync(added.Id);
 
-        Assert.That(deleted, Is.False);
-        Assert.That(await context.Comments.FindAsync(added.Id), Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(deleted, Is.False);
+            Assert.That(storedComment, Is.Not.Null);
+        });
     }
 
     [Test]
@@ -139,9 +143,13 @@ public class CommentDatabaseServiceTests
         var added = await service.AddCommentAsync(task.Id, AssigneeId, "Original text");
 
         var deleted = await service.DeleteCommentAsync(added!.Id, AssigneeId);
+        var storedComment = await context.Comments.FindAsync(added.Id);
 
-        Assert.That(deleted, Is.True);
-        Assert.That(await context.Comments.FindAsync(added.Id), Is.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(deleted, Is.True);
+            Assert.That(storedComment, Is.Null);
+        });
     }
 
     private static async Task<TodoTaskEntity> SeedAccessibleTaskAsync(TodoListDbContext context)

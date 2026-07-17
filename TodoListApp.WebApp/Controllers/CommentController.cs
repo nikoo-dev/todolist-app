@@ -50,16 +50,7 @@ public class CommentController : Controller
     /// <param name="id">The identifier of the comment.</param>
     /// <returns>The edit comment view.</returns>
     [HttpGet]
-    public async Task<IActionResult> Edit(int id)
-    {
-        var comment = await this.commentService.GetCommentAsync(id);
-        if (comment is null)
-        {
-            return this.NotFound();
-        }
-
-        return this.View(comment);
-    }
+    public Task<IActionResult> Edit(int id) => this.ShowCommentAsync(id);
 
     /// <summary>
     /// Updates an existing comment.
@@ -68,22 +59,11 @@ public class CommentController : Controller
     /// <returns>A redirect back to the task details page.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(CommentModel model)
+    public Task<IActionResult> Edit(CommentModel model)
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        if (!this.ModelState.IsValid)
-        {
-            return this.View(model);
-        }
-
-        var updated = await this.commentService.UpdateCommentAsync(model.Id, model.Text);
-        if (!updated)
-        {
-            return this.NotFound();
-        }
-
-        return this.RedirectToAction("Details", "TodoTask", new { id = model.TaskId });
+        return this.EditCommentAsync(model);
     }
 
     /// <summary>
@@ -92,16 +72,7 @@ public class CommentController : Controller
     /// <param name="id">The identifier of the comment.</param>
     /// <returns>The delete confirmation view.</returns>
     [HttpGet]
-    public async Task<IActionResult> Delete(int id)
-    {
-        var comment = await this.commentService.GetCommentAsync(id);
-        if (comment is null)
-        {
-            return this.NotFound();
-        }
-
-        return this.View(comment);
-    }
+    public Task<IActionResult> Delete(int id) => this.ShowCommentAsync(id);
 
     /// <summary>
     /// Deletes an existing comment.
@@ -121,5 +92,27 @@ public class CommentController : Controller
         }
 
         return this.RedirectToAction("Details", "TodoTask", new { id = taskId });
+    }
+
+    private async Task<IActionResult> EditCommentAsync(CommentModel model)
+    {
+        if (!this.ModelState.IsValid)
+        {
+            return this.View(model);
+        }
+
+        var updated = await this.commentService.UpdateCommentAsync(model.Id, model.Text);
+        if (!updated)
+        {
+            return this.NotFound();
+        }
+
+        return this.RedirectToAction("Details", "TodoTask", new { id = model.TaskId });
+    }
+
+    private async Task<IActionResult> ShowCommentAsync(int id)
+    {
+        var comment = await this.commentService.GetCommentAsync(id);
+        return comment is null ? this.NotFound() : this.View(comment);
     }
 }

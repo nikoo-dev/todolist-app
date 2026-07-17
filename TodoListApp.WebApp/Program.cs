@@ -47,7 +47,8 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 builder.Services.AddTransient<ApiAuthDelegatingHandler>();
 
-var apiBaseUrl = builder.Configuration["TodoListWebApi:BaseUrl"] ?? "http://localhost:5143/";
+var apiBaseUrl = builder.Configuration["TodoListWebApi:BaseUrl"]
+    ?? throw new InvalidOperationException("TodoListWebApi:BaseUrl is not configured.");
 
 builder.Services.AddHttpClient<ITodoListWebApiService, TodoListWebApiService>(client =>
 {

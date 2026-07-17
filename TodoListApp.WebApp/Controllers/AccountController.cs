@@ -54,37 +54,11 @@ public class AccountController : Controller
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Register(RegisterModel model)
+    public Task<IActionResult> Register(RegisterModel model)
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        if (!this.ModelState.IsValid)
-        {
-            return this.View(model);
-        }
-
-        var user = new ApplicationUser
-        {
-            UserName = model.Email,
-            Email = model.Email,
-            DisplayName = model.DisplayName,
-        };
-
-        var result = await this.userManager.CreateAsync(user, model.Password);
-        if (!result.Succeeded)
-        {
-            foreach (var error in result.Errors)
-            {
-                this.ModelState.AddModelError(string.Empty, error.Description);
-            }
-
-            return this.View(model);
-        }
-
-        this.logger.UserRegistered(model.Email);
-        await this.signInManager.SignInAsync(user, isPersistent: false);
-
-        return this.RedirectToAction("Index", "TodoList");
+        return this.RegisterInternalAsync(model);
     }
 
     /// <summary>
@@ -108,30 +82,11 @@ public class AccountController : Controller
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Login(LoginModel model)
+    public Task<IActionResult> Login(LoginModel model)
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        if (!this.ModelState.IsValid)
-        {
-            return this.View(model);
-        }
-
-        var result = await this.signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
-        if (!result.Succeeded)
-        {
-            this.ModelState.AddModelError(string.Empty, "Invalid email or password.");
-            return this.View(model);
-        }
-
-        this.logger.UserSignedIn(model.Email);
-
-        if (!string.IsNullOrEmpty(model.ReturnUrl) && this.Url.IsLocalUrl(model.ReturnUrl))
-        {
-            return this.Redirect(model.ReturnUrl);
-        }
-
-        return this.RedirectToAction("Index", "TodoList");
+        return this.LoginInternalAsync(model);
     }
 
     /// <summary>
@@ -164,10 +119,120 @@ public class AccountController : Controller
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ForgotPassword(ForgotPasswordModel model)
+    public Task<IActionResult> ForgotPassword(ForgotPasswordModel model)
     {
         ArgumentNullException.ThrowIfNull(model);
 
+        return this.ForgotPasswordInternalAsync(model);
+    }
+
+    /// <summary>
+    /// Shows the password recovery confirmation page.
+    /// </summary>
+    /// <returns>The confirmation view.</returns>
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ForgotPasswordConfirmation() => this.View();
+
+    /// <summary>
+    /// Shows the password reset page.
+    /// </summary>
+    /// <param name="email">The email address of the user resetting the password.</param>
+    /// <param name="token">The password reset token.</param>
+    /// <returns>The reset password view.</returns>
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ResetPassword(string email, string token) =>
+        this.View(new ResetPasswordModel { Email = email, Token = token });
+
+    /// <summary>
+    /// Resets the user's password.
+    /// </summary>
+    /// <param name="model">The password reset data.</param>
+    /// <returns>A redirect to the confirmation page on success; otherwise, the form with validation errors.</returns>
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public Task<IActionResult> ResetPassword(ResetPasswordModel model)
+    {
+        ArgumentNullException.ThrowIfNull(model);
+
+        return this.ResetPasswordInternalAsync(model);
+    }
+
+    /// <summary>
+    /// Shows the password reset confirmation page.
+    /// </summary>
+    /// <returns>The confirmation view.</returns>
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult ResetPasswordConfirmation() => this.View();
+
+    /// <summary>
+    /// Shows the access denied page.
+    /// </summary>
+    /// <returns>The access denied view.</returns>
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult AccessDenied() => this.View();
+
+    private async Task<IActionResult> RegisterInternalAsync(RegisterModel model)
+    {
+        if (!this.ModelState.IsValid)
+        {
+            return this.View(model);
+        }
+
+        var user = new ApplicationUser
+        {
+            UserName = model.Email,
+            Email = model.Email,
+            DisplayName = model.DisplayName,
+        };
+
+        var result = await this.userManager.CreateAsync(user, model.Password);
+        if (!result.Succeeded)
+        {
+            foreach (var error in result.Errors)
+            {
+                this.ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return this.View(model);
+        }
+
+        this.logger.UserRegistered(model.Email);
+        await this.signInManager.SignInAsync(user, isPersistent: false);
+
+        return this.RedirectToAction("Index", "TodoList");
+    }
+
+    private async Task<IActionResult> LoginInternalAsync(LoginModel model)
+    {
+        if (!this.ModelState.IsValid)
+        {
+            return this.View(model);
+        }
+
+        var result = await this.signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+        if (!result.Succeeded)
+        {
+            this.ModelState.AddModelError(string.Empty, "Invalid email or password.");
+            return this.View(model);
+        }
+
+        this.logger.UserSignedIn(model.Email);
+
+        if (!string.IsNullOrEmpty(model.ReturnUrl) && this.Url.IsLocalUrl(model.ReturnUrl))
+        {
+            return this.Redirect(model.ReturnUrl);
+        }
+
+        return this.RedirectToAction("Index", "TodoList");
+    }
+
+    private async Task<IActionResult> ForgotPasswordInternalAsync(ForgotPasswordModel model)
+    {
         if (!this.ModelState.IsValid)
         {
             return this.View(model);
@@ -202,37 +267,8 @@ public class AccountController : Controller
         return this.RedirectToAction(nameof(this.ForgotPasswordConfirmation));
     }
 
-    /// <summary>
-    /// Shows the password recovery confirmation page.
-    /// </summary>
-    /// <returns>The confirmation view.</returns>
-    [HttpGet]
-    [AllowAnonymous]
-    public IActionResult ForgotPasswordConfirmation() => this.View();
-
-    /// <summary>
-    /// Shows the password reset page.
-    /// </summary>
-    /// <param name="email">The email address of the user resetting the password.</param>
-    /// <param name="token">The password reset token.</param>
-    /// <returns>The reset password view.</returns>
-    [HttpGet]
-    [AllowAnonymous]
-    public IActionResult ResetPassword(string email, string token) =>
-        this.View(new ResetPasswordModel { Email = email, Token = token });
-
-    /// <summary>
-    /// Resets the user's password.
-    /// </summary>
-    /// <param name="model">The password reset data.</param>
-    /// <returns>A redirect to the confirmation page on success; otherwise, the form with validation errors.</returns>
-    [HttpPost]
-    [AllowAnonymous]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ResetPassword(ResetPasswordModel model)
+    private async Task<IActionResult> ResetPasswordInternalAsync(ResetPasswordModel model)
     {
-        ArgumentNullException.ThrowIfNull(model);
-
         if (!this.ModelState.IsValid)
         {
             return this.View(model);
@@ -260,20 +296,4 @@ public class AccountController : Controller
 
         return this.RedirectToAction(nameof(this.ResetPasswordConfirmation));
     }
-
-    /// <summary>
-    /// Shows the password reset confirmation page.
-    /// </summary>
-    /// <returns>The confirmation view.</returns>
-    [HttpGet]
-    [AllowAnonymous]
-    public IActionResult ResetPasswordConfirmation() => this.View();
-
-    /// <summary>
-    /// Shows the access denied page.
-    /// </summary>
-    /// <returns>The access denied view.</returns>
-    [HttpGet]
-    [AllowAnonymous]
-    public IActionResult AccessDenied() => this.View();
 }

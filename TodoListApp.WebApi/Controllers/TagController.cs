@@ -102,22 +102,11 @@ public class TagController : ControllerBase
     /// <param name="model">The tag data.</param>
     /// <returns>The added tag.</returns>
     [HttpPost("tasks/{taskId:int}/tags")]
-    public async Task<ActionResult<TagModel>> AddTagToTask(int taskId, [FromBody] TagModel model)
+    public Task<ActionResult<TagModel>> AddTagToTask(int taskId, [FromBody] TagModel model)
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        if (!this.ModelState.IsValid)
-        {
-            return this.BadRequest(this.ModelState);
-        }
-
-        var tag = await this.tagService.AddTagToTaskAsync(taskId, this.CurrentUserId, model.Name);
-        if (tag is null)
-        {
-            return this.NotFound();
-        }
-
-        return this.CreatedAtAction(nameof(this.GetTagsForTask), new { taskId }, tag);
+        return this.AddTagToTaskInternalAsync(taskId, model);
     }
 
     /// <summary>
@@ -136,5 +125,21 @@ public class TagController : ControllerBase
         }
 
         return this.NoContent();
+    }
+
+    private async Task<ActionResult<TagModel>> AddTagToTaskInternalAsync(int taskId, TagModel model)
+    {
+        if (!this.ModelState.IsValid)
+        {
+            return this.BadRequest(this.ModelState);
+        }
+
+        var tag = await this.tagService.AddTagToTaskAsync(taskId, this.CurrentUserId, model.Name);
+        if (tag is null)
+        {
+            return this.NotFound();
+        }
+
+        return this.CreatedAtAction(nameof(this.GetTagsForTask), new { taskId }, tag);
     }
 }

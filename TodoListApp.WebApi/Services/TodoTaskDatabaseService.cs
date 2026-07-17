@@ -65,58 +65,19 @@ public class TodoTaskDatabaseService : ITodoTaskDatabaseService
     }
 
     /// <inheritdoc/>
-    public async Task<TodoTask?> AddTaskAsync(TodoTask task, string ownerId)
+    public Task<TodoTask?> AddTaskAsync(TodoTask task, string ownerId)
     {
         ArgumentNullException.ThrowIfNull(task);
 
-        var listExists = await this.context.TodoLists.AnyAsync(l => l.Id == task.TodoListId && l.OwnerId == ownerId);
-        if (!listExists)
-        {
-            return null;
-        }
-
-        var entity = new TodoTaskEntity
-        {
-            Title = task.Title,
-            Description = task.Description,
-            CreatedDate = DateTime.Now,
-            DueDate = task.DueDate,
-            Status = task.Status,
-            AssigneeId = ownerId,
-            TodoListId = task.TodoListId,
-        };
-
-        this.context.TodoTasks.Add(entity);
-        await this.context.SaveChangesAsync();
-
-        return ToModel(entity);
+        return this.AddTaskInternalAsync(task, ownerId);
     }
 
     /// <inheritdoc/>
-    public async Task<bool> UpdateTaskAsync(TodoTask task, string ownerId)
+    public Task<bool> UpdateTaskAsync(TodoTask task, string ownerId)
     {
         ArgumentNullException.ThrowIfNull(task);
 
-        var entity = await this.FindOwnedTaskQuery(ownerId)
-            .FirstOrDefaultAsync(t => t.Id == task.Id);
-
-        if (entity is null)
-        {
-            return false;
-        }
-
-        entity.Title = task.Title;
-        entity.Description = task.Description;
-        entity.DueDate = task.DueDate;
-        entity.Status = task.Status;
-        if (!string.IsNullOrWhiteSpace(task.AssigneeId))
-        {
-            entity.AssigneeId = task.AssigneeId;
-        }
-
-        await this.context.SaveChangesAsync();
-
-        return true;
+        return this.UpdateTaskInternalAsync(task, ownerId);
     }
 
     /// <inheritdoc/>
@@ -257,6 +218,55 @@ public class TodoTaskDatabaseService : ITodoTaskDatabaseService
         TagCount = entity.Tags.Count,
         CommentCount = entity.Comments.Count,
     };
+
+    private async Task<TodoTask?> AddTaskInternalAsync(TodoTask task, string ownerId)
+    {
+        var listExists = await this.context.TodoLists.AnyAsync(l => l.Id == task.TodoListId && l.OwnerId == ownerId);
+        if (!listExists)
+        {
+            return null;
+        }
+
+        var entity = new TodoTaskEntity
+        {
+            Title = task.Title,
+            Description = task.Description,
+            CreatedDate = DateTime.Now,
+            DueDate = task.DueDate,
+            Status = task.Status,
+            AssigneeId = ownerId,
+            TodoListId = task.TodoListId,
+        };
+
+        this.context.TodoTasks.Add(entity);
+        await this.context.SaveChangesAsync();
+
+        return ToModel(entity);
+    }
+
+    private async Task<bool> UpdateTaskInternalAsync(TodoTask task, string ownerId)
+    {
+        var entity = await this.FindOwnedTaskQuery(ownerId)
+            .FirstOrDefaultAsync(t => t.Id == task.Id);
+
+        if (entity is null)
+        {
+            return false;
+        }
+
+        entity.Title = task.Title;
+        entity.Description = task.Description;
+        entity.DueDate = task.DueDate;
+        entity.Status = task.Status;
+        if (!string.IsNullOrWhiteSpace(task.AssigneeId))
+        {
+            entity.AssigneeId = task.AssigneeId;
+        }
+
+        await this.context.SaveChangesAsync();
+
+        return true;
+    }
 
     private IQueryable<TodoTaskEntity> FindOwnedTaskQuery(string ownerId) =>
         this.context.TodoTasks

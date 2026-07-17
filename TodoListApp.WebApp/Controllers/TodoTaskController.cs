@@ -96,31 +96,11 @@ public class TodoTaskController : Controller
     /// <returns>A redirect to the task list on success; otherwise, the form with validation errors.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Add(TodoTaskModel model)
+    public Task<IActionResult> Add(TodoTaskModel model)
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        if (!this.ModelState.IsValid)
-        {
-            return this.View(model);
-        }
-
-        var created = await this.taskService.AddTaskAsync(
-            model.TodoListId,
-            new TodoTask
-            {
-                Title = model.Title,
-                Description = model.Description,
-                DueDate = model.DueDate,
-                Status = model.Status,
-            });
-
-        if (created is null)
-        {
-            return this.NotFound();
-        }
-
-        return this.RedirectToAction(nameof(this.Index), new { todoListId = model.TodoListId });
+        return this.AddInternalAsync(model);
     }
 
     /// <summary>
@@ -150,33 +130,11 @@ public class TodoTaskController : Controller
     /// <returns>A redirect to the task details on success; otherwise, the form with validation errors.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, TodoTaskModel model)
+    public Task<IActionResult> Edit(int id, TodoTaskModel model)
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        if (!this.ModelState.IsValid)
-        {
-            this.ViewBag.Assignees = await this.GetAssigneeSelectListAsync(model.AssigneeId);
-            return this.View(model);
-        }
-
-        var updated = await this.taskService.UpdateTaskAsync(
-            new TodoTask
-            {
-                Id = id,
-                Title = model.Title,
-                Description = model.Description,
-                DueDate = model.DueDate,
-                Status = model.Status,
-                AssigneeId = model.AssigneeId,
-            });
-
-        if (!updated)
-        {
-            return this.NotFound();
-        }
-
-        return this.RedirectToAction(nameof(this.Details), new { id });
+        return this.EditInternalAsync(id, model);
     }
 
     /// <summary>
@@ -211,6 +169,58 @@ public class TodoTaskController : Controller
         this.logger.TaskDeleted(id);
 
         return this.RedirectToAction(nameof(this.Index), new { todoListId });
+    }
+
+    private async Task<IActionResult> AddInternalAsync(TodoTaskModel model)
+    {
+        if (!this.ModelState.IsValid)
+        {
+            return this.View(model);
+        }
+
+        var created = await this.taskService.AddTaskAsync(
+            model.TodoListId,
+            new TodoTask
+            {
+                Title = model.Title,
+                Description = model.Description,
+                DueDate = model.DueDate,
+                Status = model.Status,
+            });
+
+        if (created is null)
+        {
+            return this.NotFound();
+        }
+
+        return this.RedirectToAction(nameof(this.Index), new { todoListId = model.TodoListId });
+    }
+
+    private async Task<IActionResult> EditInternalAsync(int id, TodoTaskModel model)
+    {
+        if (!this.ModelState.IsValid)
+        {
+            this.ViewBag.Assignees = await this.GetAssigneeSelectListAsync(model.AssigneeId);
+            return this.View(model);
+        }
+
+        var updated = await this.taskService.UpdateTaskAsync(
+            new TodoTask
+            {
+                Id = id,
+                Title = model.Title,
+                Description = model.Description,
+                DueDate = model.DueDate,
+                Status = model.Status,
+                AssigneeId = model.AssigneeId,
+            });
+
+        if (!updated)
+        {
+            return this.NotFound();
+        }
+
+        return this.RedirectToAction(nameof(this.Details), new { id });
     }
 
     private async Task<TodoTaskModel> ToViewModelAsync(TodoTask task)

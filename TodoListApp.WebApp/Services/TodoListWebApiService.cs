@@ -52,33 +52,19 @@ public class TodoListWebApiService : ITodoListWebApiService
     }
 
     /// <inheritdoc/>
-    public async Task<TodoList> AddTodoListAsync(TodoList todoList)
+    public Task<TodoList> AddTodoListAsync(TodoList todoList)
     {
         ArgumentNullException.ThrowIfNull(todoList);
 
-        var response = await this.httpClient.PostAsJsonAsync("api/todolists", ToApiModel(todoList));
-        response.EnsureSuccessStatusCode();
-
-        var created = await response.Content.ReadFromJsonAsync<TodoListWebApiModel>();
-
-        return ToDomainModel(created ?? throw new InvalidOperationException("The web API returned an empty response."));
+        return this.AddTodoListInternalAsync(todoList);
     }
 
     /// <inheritdoc/>
-    public async Task<bool> UpdateTodoListAsync(TodoList todoList)
+    public Task<bool> UpdateTodoListAsync(TodoList todoList)
     {
         ArgumentNullException.ThrowIfNull(todoList);
 
-        var response = await this.httpClient.PutAsJsonAsync($"api/todolists/{todoList.Id}", ToApiModel(todoList));
-
-        if (response.StatusCode == HttpStatusCode.NotFound)
-        {
-            return false;
-        }
-
-        response.EnsureSuccessStatusCode();
-
-        return true;
+        return this.UpdateTodoListInternalAsync(todoList);
     }
 
     /// <inheritdoc/>
@@ -111,4 +97,28 @@ public class TodoListWebApiService : ITodoListWebApiService
         Description = todoList.Description,
         TaskCount = todoList.TaskCount,
     };
+
+    private async Task<TodoList> AddTodoListInternalAsync(TodoList todoList)
+    {
+        var response = await this.httpClient.PostAsJsonAsync("api/todolists", ToApiModel(todoList));
+        response.EnsureSuccessStatusCode();
+
+        var created = await response.Content.ReadFromJsonAsync<TodoListWebApiModel>();
+
+        return ToDomainModel(created ?? throw new InvalidOperationException("The web API returned an empty response."));
+    }
+
+    private async Task<bool> UpdateTodoListInternalAsync(TodoList todoList)
+    {
+        var response = await this.httpClient.PutAsJsonAsync($"api/todolists/{todoList.Id}", ToApiModel(todoList));
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+
+        response.EnsureSuccessStatusCode();
+
+        return true;
+    }
 }

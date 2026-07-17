@@ -39,9 +39,16 @@ public class TodoTaskDatabaseServiceTests
 
         var service = new TodoTaskDatabaseService(context);
 
-        Assert.That(await service.GetTaskAsync(task.Id, OwnerId), Is.Not.Null);
-        Assert.That(await service.GetTaskAsync(task.Id, AssigneeId), Is.Not.Null);
-        Assert.That(await service.GetTaskAsync(task.Id, StrangerId), Is.Null);
+        var asOwner = await service.GetTaskAsync(task.Id, OwnerId);
+        var asAssignee = await service.GetTaskAsync(task.Id, AssigneeId);
+        var asStranger = await service.GetTaskAsync(task.Id, StrangerId);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(asOwner, Is.Not.Null);
+            Assert.That(asAssignee, Is.Not.Null);
+            Assert.That(asStranger, Is.Null);
+        });
     }
 
     [Test]
@@ -171,8 +178,14 @@ public class TodoTaskDatabaseServiceTests
 
         var service = new TodoTaskDatabaseService(context);
 
-        Assert.That(await service.UpdateTaskStatusAsync(task.Id, OwnerId, TodoTaskStatus.Completed), Is.False);
-        Assert.That(await service.UpdateTaskStatusAsync(task.Id, AssigneeId, TodoTaskStatus.Completed), Is.True);
+        var ownerAttempt = await service.UpdateTaskStatusAsync(task.Id, OwnerId, TodoTaskStatus.Completed);
+        var assigneeAttempt = await service.UpdateTaskStatusAsync(task.Id, AssigneeId, TodoTaskStatus.Completed);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(ownerAttempt, Is.False);
+            Assert.That(assigneeAttempt, Is.True);
+        });
 
         var stored = await context.TodoTasks.FindAsync(task.Id);
         Assert.That(stored?.Status, Is.EqualTo(TodoTaskStatus.Completed));
@@ -211,8 +224,12 @@ public class TodoTaskDatabaseServiceTests
 
         var service = new TodoTaskDatabaseService(context);
         var deleted = await service.DeleteTaskAsync(task.Id, AssigneeId);
+        var storedTask = await context.TodoTasks.FindAsync(task.Id);
 
-        Assert.That(deleted, Is.False);
-        Assert.That(await context.TodoTasks.FindAsync(task.Id), Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(deleted, Is.False);
+            Assert.That(storedTask, Is.Not.Null);
+        });
     }
 }

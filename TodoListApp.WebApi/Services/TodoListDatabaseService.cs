@@ -64,41 +64,19 @@ public class TodoListDatabaseService : ITodoListDatabaseService
     }
 
     /// <inheritdoc/>
-    public async Task<TodoList> AddTodoListAsync(TodoList todoList)
+    public Task<TodoList> AddTodoListAsync(TodoList todoList)
     {
         ArgumentNullException.ThrowIfNull(todoList);
 
-        var entity = new TodoListEntity
-        {
-            Title = todoList.Title,
-            Description = todoList.Description,
-            OwnerId = todoList.OwnerId,
-        };
-
-        this.context.TodoLists.Add(entity);
-        await this.context.SaveChangesAsync();
-
-        return ToModel(entity);
+        return this.AddTodoListInternalAsync(todoList);
     }
 
     /// <inheritdoc/>
-    public async Task<bool> UpdateTodoListAsync(TodoList todoList)
+    public Task<bool> UpdateTodoListAsync(TodoList todoList)
     {
         ArgumentNullException.ThrowIfNull(todoList);
 
-        var entity = await this.context.TodoLists
-            .FirstOrDefaultAsync(l => l.Id == todoList.Id && l.OwnerId == todoList.OwnerId);
-
-        if (entity is null)
-        {
-            return false;
-        }
-
-        entity.Title = todoList.Title;
-        entity.Description = todoList.Description;
-        await this.context.SaveChangesAsync();
-
-        return true;
+        return this.UpdateTodoListInternalAsync(todoList);
     }
 
     /// <inheritdoc/>
@@ -126,4 +104,36 @@ public class TodoListDatabaseService : ITodoListDatabaseService
         OwnerId = entity.OwnerId,
         TaskCount = entity.Tasks.Count,
     };
+
+    private async Task<TodoList> AddTodoListInternalAsync(TodoList todoList)
+    {
+        var entity = new TodoListEntity
+        {
+            Title = todoList.Title,
+            Description = todoList.Description,
+            OwnerId = todoList.OwnerId,
+        };
+
+        this.context.TodoLists.Add(entity);
+        await this.context.SaveChangesAsync();
+
+        return ToModel(entity);
+    }
+
+    private async Task<bool> UpdateTodoListInternalAsync(TodoList todoList)
+    {
+        var entity = await this.context.TodoLists
+            .FirstOrDefaultAsync(l => l.Id == todoList.Id && l.OwnerId == todoList.OwnerId);
+
+        if (entity is null)
+        {
+            return false;
+        }
+
+        entity.Title = todoList.Title;
+        entity.Description = todoList.Description;
+        await this.context.SaveChangesAsync();
+
+        return true;
+    }
 }

@@ -55,22 +55,11 @@ public class TodoListController : Controller
     /// <returns>A redirect to the to-do list index on success; otherwise, the form with validation errors.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Add(TodoListModel model)
+    public Task<IActionResult> Add(TodoListModel model)
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        if (!this.ModelState.IsValid)
-        {
-            return this.View(model);
-        }
-
-        await this.todoListService.AddTodoListAsync(new TodoList
-        {
-            Title = model.Title,
-            Description = model.Description,
-        });
-
-        return this.RedirectToAction(nameof(this.Index));
+        return this.AddInternalAsync(model);
     }
 
     /// <summary>
@@ -104,28 +93,11 @@ public class TodoListController : Controller
     /// <returns>A redirect to the to-do list index on success; otherwise, the form with validation errors.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, TodoListModel model)
+    public Task<IActionResult> Edit(int id, TodoListModel model)
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        if (!this.ModelState.IsValid)
-        {
-            return this.View(model);
-        }
-
-        var updated = await this.todoListService.UpdateTodoListAsync(new TodoList
-        {
-            Id = id,
-            Title = model.Title,
-            Description = model.Description,
-        });
-
-        if (!updated)
-        {
-            return this.NotFound();
-        }
-
-        return this.RedirectToAction(nameof(this.Index));
+        return this.EditInternalAsync(id, model);
     }
 
     /// <summary>
@@ -157,6 +129,44 @@ public class TodoListController : Controller
     {
         await this.todoListService.DeleteTodoListAsync(id);
         this.logger.TodoListDeleted(id);
+
+        return this.RedirectToAction(nameof(this.Index));
+    }
+
+    private async Task<IActionResult> AddInternalAsync(TodoListModel model)
+    {
+        if (!this.ModelState.IsValid)
+        {
+            return this.View(model);
+        }
+
+        await this.todoListService.AddTodoListAsync(new TodoList
+        {
+            Title = model.Title,
+            Description = model.Description,
+        });
+
+        return this.RedirectToAction(nameof(this.Index));
+    }
+
+    private async Task<IActionResult> EditInternalAsync(int id, TodoListModel model)
+    {
+        if (!this.ModelState.IsValid)
+        {
+            return this.View(model);
+        }
+
+        var updated = await this.todoListService.UpdateTodoListAsync(new TodoList
+        {
+            Id = id,
+            Title = model.Title,
+            Description = model.Description,
+        });
+
+        if (!updated)
+        {
+            return this.NotFound();
+        }
 
         return this.RedirectToAction(nameof(this.Index));
     }

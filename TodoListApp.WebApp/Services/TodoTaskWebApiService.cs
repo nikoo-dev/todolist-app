@@ -60,38 +60,19 @@ public class TodoTaskWebApiService : ITodoTaskWebApiService
     }
 
     /// <inheritdoc/>
-    public async Task<TodoTask?> AddTaskAsync(int todoListId, TodoTask task)
+    public Task<TodoTask?> AddTaskAsync(int todoListId, TodoTask task)
     {
         ArgumentNullException.ThrowIfNull(task);
 
-        using var response = await this.httpClient.PostAsJsonAsync($"api/todolists/{todoListId}/tasks", ToApiModel(task));
-
-        if (response.StatusCode == HttpStatusCode.NotFound)
-        {
-            return null;
-        }
-
-        response.EnsureSuccessStatusCode();
-        var created = await response.Content.ReadFromJsonAsync<TodoTaskWebApiModel>();
-
-        return created is null ? null : ToDomainModel(created);
+        return this.AddTaskInternalAsync(todoListId, task);
     }
 
     /// <inheritdoc/>
-    public async Task<bool> UpdateTaskAsync(TodoTask task)
+    public Task<bool> UpdateTaskAsync(TodoTask task)
     {
         ArgumentNullException.ThrowIfNull(task);
 
-        using var response = await this.httpClient.PutAsJsonAsync($"api/tasks/{task.Id}", ToApiModel(task));
-
-        if (response.StatusCode == HttpStatusCode.NotFound)
-        {
-            return false;
-        }
-
-        response.EnsureSuccessStatusCode();
-
-        return true;
+        return this.UpdateTaskInternalAsync(task);
     }
 
     /// <inheritdoc/>
@@ -221,4 +202,33 @@ public class TodoTaskWebApiService : ITodoTaskWebApiService
         CommentCount = task.CommentCount,
         IsOverdue = task.IsOverdue,
     };
+
+    private async Task<TodoTask?> AddTaskInternalAsync(int todoListId, TodoTask task)
+    {
+        using var response = await this.httpClient.PostAsJsonAsync($"api/todolists/{todoListId}/tasks", ToApiModel(task));
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCode();
+        var created = await response.Content.ReadFromJsonAsync<TodoTaskWebApiModel>();
+
+        return created is null ? null : ToDomainModel(created);
+    }
+
+    private async Task<bool> UpdateTaskInternalAsync(TodoTask task)
+    {
+        using var response = await this.httpClient.PutAsJsonAsync($"api/tasks/{task.Id}", ToApiModel(task));
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+
+        response.EnsureSuccessStatusCode();
+
+        return true;
+    }
 }

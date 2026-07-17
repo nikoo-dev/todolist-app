@@ -10,23 +10,23 @@
         <input type="hidden" asp-for="TodoListId" />
         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
         <div class="mb-3">
-            <label asp-for="Title" class="form-label"></label>
-            <input asp-for="Title" class="form-control" />
+            <label asp-for="Title" for="Title" class="form-label"></label>
+            <input asp-for="Title" id="Title" class="form-control" />
             <span asp-validation-for="Title" class="text-danger"></span>
         </div>
         <div class="mb-3">
-            <label asp-for="Description" class="form-label"></label>
-            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+            <label asp-for="Description" for="Description" class="form-label"></label>
+            <textarea asp-for="Description" id="Description" class="form-control" rows="3"></textarea>
             <span asp-validation-for="Description" class="text-danger"></span>
         </div>
         <div class="mb-3">
-            <label asp-for="DueDate" class="form-label"></label>
-            <input asp-for="DueDate" class="form-control" />
+            <label asp-for="DueDate" for="DueDate" class="form-label"></label>
+            <input asp-for="DueDate" id="DueDate" class="form-control" />
             <span asp-validation-for="DueDate" class="text-danger"></span>
         </div>
         <div class="mb-3">
-            <label asp-for="Status" class="form-label"></label>
-            <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<TodoListApp.WebApp.Models.TodoTaskStatus>()"></select>
+            <label asp-for="Status" for="Status" class="form-label"></label>
+            <select asp-for="Status" id="Status" class="form-select" asp-items="Html.GetEnumSelectList<TodoListApp.WebApp.Models.TodoTaskStatus>()"></select>
         </div>
         <button type="submit" class="btn btn-primary">Add Task</button>
         <a asp-controller="TodoTask" asp-action="Index" asp-route-todoListId="@this.Model.TodoListId" class="btn btn-outline-secondary">Cancel</a>
