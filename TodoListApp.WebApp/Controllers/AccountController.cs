@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using TodoListApp.WebApp.Data;
 using TodoListApp.WebApp.Logging;
 using TodoListApp.WebApp.Models.Account;
+using TodoListApp.WebApp.Services;
 
 namespace TodoListApp.WebApp.Controllers;
 
@@ -14,6 +16,7 @@ public class AccountController : Controller
 {
     private readonly UserManager<ApplicationUser> userManager;
     private readonly SignInManager<ApplicationUser> signInManager;
+    private readonly IEmailSender emailSender;
     private readonly ILogger<AccountController> logger;
 
     /// <summary>
@@ -21,14 +24,17 @@ public class AccountController : Controller
     /// </summary>
     /// <param name="userManager">The user manager.</param>
     /// <param name="signInManager">The sign-in manager.</param>
+    /// <param name="emailSender">The email sender used to deliver password recovery instructions.</param>
     /// <param name="logger">The logger.</param>
     public AccountController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
+        IEmailSender emailSender,
         ILogger<AccountController> logger)
     {
         this.userManager = userManager;
         this.signInManager = signInManager;
+        this.emailSender = emailSender;
         this.logger = logger;
     }
 
@@ -154,7 +160,7 @@ public class AccountController : Controller
     /// Sends password recovery instructions to the specified email address.
     /// </summary>
     /// <param name="model">The password recovery request data.</param>
-    /// <returns>The confirmation page, showing the reset link since no mail server is configured.</returns>
+    /// <returns>The confirmation page. If no mail server is configured, the reset link is also shown there.</returns>
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
@@ -183,7 +189,15 @@ public class AccountController : Controller
 
         this.logger.PasswordResetRequested(model.Email, resetUrl);
 
-        this.TempData["ResetPasswordUrl"] = resetUrl;
+        var htmlMessage = $"<p>Use the link below to reset your password:</p><p><a href=\"{resetUrl}\">{resetUrl}</a></p>";
+        await this.emailSender.SendEmailAsync(model.Email, "Reset your To-Do List password", htmlMessage);
+
+        if (this.emailSender is LoggingEmailSender)
+        {
+            // No real mail server is configured: surface the link on the confirmation page too,
+            // since there is nowhere else the user could retrieve it from.
+            this.TempData["ResetPasswordUrl"] = resetUrl;
+        }
 
         return this.RedirectToAction(nameof(this.ForgotPasswordConfirmation));
     }

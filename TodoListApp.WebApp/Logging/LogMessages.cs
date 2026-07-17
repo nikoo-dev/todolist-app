@@ -30,4 +30,10 @@ internal static partial class LogMessages
 
     [LoggerMessage(EventId = 8, Level = LogLevel.Information, Message = "Email suppressed (no SMTP configured). To: {Email}, Subject: {Subject}, Body: {Body}")]
     public static partial void EmailSuppressed(this ILogger logger, string email, string subject, string body);
+
+    [LoggerMessage(EventId = 9, Level = LogLevel.Information, Message = "Email sent to {Email} with subject '{Subject}'.")]
+    public static partial void EmailSent(this ILogger logger, string email, string subject);
+
+    [LoggerMessage(EventId = 10, Level = LogLevel.Error, Message = "Failed to send email to {Email} with subject '{Subject}': {Error}")]
+    public static partial void EmailSendFailed(this ILogger logger, string email, string subject, string error);
 }

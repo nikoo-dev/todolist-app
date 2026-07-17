@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -15,6 +15,7 @@
       CS0050/CS0051 accessibility-mismatch compile errors, not a cleaner design.
     -->
     <NoWarn>$(NoWarn);CA1515</NoWarn>
+    <UserSecretsId>d7241ada-1b74-4b4d-b6d1-2f803e39e2e0</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

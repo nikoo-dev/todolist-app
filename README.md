@@ -25,23 +25,49 @@ Both `TodoListApp.WebApi` and `TodoListApp.WebApp` must be running at the same t
    ```
    dotnet build TodoListApp.sln
    ```
-2. Start the Web API (in its own terminal):
+2. Configure the shared JWT signing key (required — see [Authentication between the two tiers](#authentication-between-the-two-tiers) below). The app will not start without it.
+3. Start the Web API (in its own terminal):
    ```
    dotnet run --project TodoListApp.WebApi
    ```
    It listens on `http://localhost:5143` and exposes a Swagger UI at `/swagger`. On first run it creates and migrates `todolist.db` (SQLite) in the project folder.
-3. Start the Web App (in a second terminal):
+4. Start the Web App (in a second terminal):
    ```
    dotnet run --project TodoListApp.WebApp
    ```
    It listens on `http://localhost:5217` and creates/migrates `users.db` (SQLite, ASP.NET Core Identity) on first run.
-4. Open `http://localhost:5217` in a browser, sign up for an account, and sign in.
+5. Open `http://localhost:5217` in a browser, sign up for an account, and sign in.
 
 ### Authentication between the two tiers
 
-The Web App authenticates its own users with ASP.NET Core Identity (cookie auth), then calls the Web API using short-lived JWT bearer tokens it mints per request. Both projects' `appsettings.json` have a `Jwt` section (`SigningKey`, `Issuer`, `Audience`) that **must match exactly** between the two projects — if you change one, change the other the same way, or API calls from the web app will fail with 401 Unauthorized.
+The Web App authenticates its own users with ASP.NET Core Identity (cookie auth), then calls the Web API using short-lived JWT bearer tokens it mints per request. Both projects read a `Jwt:SigningKey` value that **must match exactly** between the two projects, or API calls from the web app will fail with 401 Unauthorized. `Jwt:Issuer` and `Jwt:Audience` are not secrets and are already set in both `appsettings.json` files.
+
+The signing key itself is deliberately **not** committed to `appsettings.json` — it's read from [.NET user-secrets](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets), so set the same value for both projects before first run:
+
+```
+dotnet user-secrets set "Jwt:SigningKey" "<a-long-random-string-at-least-32-bytes>" --project TodoListApp.WebApi
+dotnet user-secrets set "Jwt:SigningKey" "<the-same-string>" --project TodoListApp.WebApp
+```
+
+(`Program.cs` in `TodoListApp.WebApi` throws on startup if `Jwt:SigningKey` is missing, so this step can't be skipped.)
 
 The `TodoListWebApi:BaseUrl` setting in `TodoListApp.WebApp/appsettings.json` must point at wherever the Web API is actually listening (defaults to `http://localhost:5143/`, matching the default `dotnet run` port above).
+
+### Password recovery email (optional)
+
+`TodoListApp.WebApp` sends password-reset instructions through `IEmailSender`. By default, with no SMTP server configured, it falls back to `LoggingEmailSender`, which writes the message (including the reset link) to the application log and also surfaces the link directly on the "Check your email" confirmation page — so the reset flow works out of the box without any mail server.
+
+To have it send real email instead, configure an `Smtp` section via user-secrets (never commit real credentials to `appsettings.json`):
+
+```
+dotnet user-secrets set "Smtp:Host" "smtp.example.com" --project TodoListApp.WebApp
+dotnet user-secrets set "Smtp:Port" "587" --project TodoListApp.WebApp
+dotnet user-secrets set "Smtp:Username" "your-username" --project TodoListApp.WebApp
+dotnet user-secrets set "Smtp:Password" "your-password" --project TodoListApp.WebApp
+dotnet user-secrets set "Smtp:FromAddress" "no-reply@example.com" --project TodoListApp.WebApp
+```
+
+Once `Smtp:Host` is set, `TodoListApp.WebApp` automatically switches from `LoggingEmailSender` to `SmtpEmailSender` at startup, and the reset link stops being shown on-screen (it's actually emailed instead).
 
 ### Running the tests
 

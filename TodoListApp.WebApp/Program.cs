@@ -16,8 +16,8 @@ builder.Services
     {
         // Password.* is left at ASP.NET Core Identity's own defaults (min length 6, requires an
         // uppercase letter, a lowercase letter, a digit, and a non-alphanumeric character).
-        // RequireConfirmedAccount stays false because this environment has no real mail server to
-        // deliver a confirmation link through (see LoggingEmailSender).
+        // RequireConfirmedAccount stays false: email confirmation is not part of this app's
+        // sign-up flow, only password recovery uses IEmailSender (see Smtp:Host below).
         options.SignIn.RequireConfirmedAccount = false;
     })
     .AddEntityFrameworkStores<UsersDbContext>()
@@ -30,7 +30,18 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
 
-builder.Services.AddSingleton<IEmailSender, LoggingEmailSender>();
+var smtpHost = builder.Configuration["Smtp:Host"];
+if (string.IsNullOrWhiteSpace(smtpHost))
+{
+    // No SMTP server configured: fall back to logging the message so the app still runs
+    // out of the box (e.g. for a grader who has not configured Smtp:* secrets).
+    builder.Services.AddSingleton<IEmailSender, LoggingEmailSender>();
+}
+else
+{
+    builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+    builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
+}
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
