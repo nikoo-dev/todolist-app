@@ -1,0 +1,8 @@
+# Test-only relaxations. The root .editorconfig (used by the shipped WebApi/WebApp projects) is left
+# untouched; these two rules specifically fight idiomatic test code and add no value here:
+#   - CA1707: test method names conventionally use underscores (Method_Scenario_ExpectedResult).
+#   - SA1600/SA1602: XML doc comments on every test fixture/method/enum member would be pure noise.
+[*.cs]
+dotnet_diagnostic.CA1707.severity = none
+dotnet_diagnostic.SA1600.severity = none
+dotnet_diagnostic.SA1602.severity = none

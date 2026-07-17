@@ -20,8 +20,8 @@
                 </div>
                 <p class="mb-1">@comment.Text</p>
                 <div class="d-flex gap-2">
-                    <a class="small" asp-controller="Comment" asp-action="Edit" asp-route-id="@comment.Id" asp-route-taskId="@taskId" asp-route-text="@comment.Text">Edit</a>
-                    <a class="small text-danger" asp-controller="Comment" asp-action="Delete" asp-route-id="@comment.Id" asp-route-taskId="@taskId" asp-route-text="@comment.Text">Delete</a>
+                    <a class="small" asp-controller="Comment" asp-action="Edit" asp-route-id="@comment.Id">Edit</a>
+                    <a class="small text-danger" asp-controller="Comment" asp-action="Delete" asp-route-id="@comment.Id">Delete</a>
                 </div>
             </div>
         }

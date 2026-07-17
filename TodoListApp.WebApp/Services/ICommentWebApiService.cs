@@ -16,12 +16,19 @@ public interface ICommentWebApiService
     Task<IReadOnlyList<CommentModel>> GetCommentsAsync(int taskId);
 
     /// <summary>
+    /// Gets a single comment the current user is allowed to edit or delete.
+    /// </summary>
+    /// <param name="commentId">The identifier of the comment.</param>
+    /// <returns>The comment, or <see langword="null"/> if it does not exist or the user is not allowed to edit it.</returns>
+    Task<CommentModel?> GetCommentAsync(int commentId);
+
+    /// <summary>
     /// Adds a new comment to a task.
     /// </summary>
     /// <param name="taskId">The identifier of the task.</param>
     /// <param name="text">The text of the comment.</param>
-    /// <returns>The added comment.</returns>
-    Task<CommentModel> AddCommentAsync(int taskId, string text);
+    /// <returns>The added comment, or <see langword="null"/> if the task does not exist or the user does not have access to it.</returns>
+    Task<CommentModel?> AddCommentAsync(int taskId, string text);
 
     /// <summary>
     /// Updates an existing comment.

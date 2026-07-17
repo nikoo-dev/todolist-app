@@ -29,14 +29,33 @@ public class CommentWebApiService : ICommentWebApiService
     }
 
     /// <inheritdoc/>
-    public async Task<CommentModel> AddCommentAsync(int taskId, string text)
+    public async Task<CommentModel?> GetCommentAsync(int commentId)
     {
-        using var response = await this.httpClient.PostAsJsonAsync($"api/tasks/{taskId}/comments", new CommentModel { Text = text });
+        using var response = await this.httpClient.GetAsync(new Uri($"api/comments/{commentId}", UriKind.Relative));
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
         response.EnsureSuccessStatusCode();
 
-        var comment = await response.Content.ReadFromJsonAsync<CommentModel>();
+        return await response.Content.ReadFromJsonAsync<CommentModel>();
+    }
 
-        return comment ?? throw new InvalidOperationException("The web API returned an empty response.");
+    /// <inheritdoc/>
+    public async Task<CommentModel?> AddCommentAsync(int taskId, string text)
+    {
+        using var response = await this.httpClient.PostAsJsonAsync($"api/tasks/{taskId}/comments", new CommentModel { Text = text });
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<CommentModel>();
     }
 
     /// <inheritdoc/>

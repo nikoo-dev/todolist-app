@@ -16,6 +16,15 @@ public interface ICommentDatabaseService
     Task<IEnumerable<CommentModel>?> GetCommentsForTaskAsync(int taskId, string userId);
 
     /// <summary>
+    /// Gets a single comment the specified user is allowed to edit or delete: either the to-do list
+    /// owner or the comment's own author.
+    /// </summary>
+    /// <param name="commentId">The identifier of the comment.</param>
+    /// <param name="userId">The identifier of the current user.</param>
+    /// <returns>The comment, or <see langword="null"/> if it does not exist or the user is not allowed to edit it.</returns>
+    Task<CommentModel?> GetCommentAsync(int commentId, string userId);
+
+    /// <summary>
     /// Adds a new comment to a task the specified user has access to.
     /// </summary>
     /// <param name="taskId">The identifier of the task.</param>

@@ -39,6 +39,16 @@ public class CommentDatabaseService : ICommentDatabaseService
     }
 
     /// <inheritdoc/>
+    public async Task<CommentModel?> GetCommentAsync(int commentId, string userId)
+    {
+        var comment = await this.FindEditableCommentQuery(userId)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == commentId);
+
+        return comment is null ? null : ToApiModel(comment);
+    }
+
+    /// <inheritdoc/>
     public async Task<CommentModel?> AddCommentAsync(int taskId, string userId, string text)
     {
         var task = await this.context.TodoTasks

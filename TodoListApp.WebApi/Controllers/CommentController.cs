@@ -47,6 +47,23 @@ public class CommentController : ControllerBase
     }
 
     /// <summary>
+    /// Gets a single comment the current user is allowed to edit or delete.
+    /// </summary>
+    /// <param name="id">The identifier of the comment.</param>
+    /// <returns>The comment.</returns>
+    [HttpGet("comments/{id:int}")]
+    public async Task<ActionResult<CommentModel>> GetComment(int id)
+    {
+        var comment = await this.commentService.GetCommentAsync(id, this.CurrentUserId);
+        if (comment is null)
+        {
+            return this.NotFound();
+        }
+
+        return this.Ok(comment);
+    }
+
+    /// <summary>
     /// Adds a new comment to a task.
     /// </summary>
     /// <param name="taskId">The identifier of the task.</param>

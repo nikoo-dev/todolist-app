@@ -9,6 +9,46 @@ In this project, you must design and develop a web application according to the 
   * The application must use the [ASP.NET Core Identity API](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/identity) to manage users, passwords and profile data.
 
 
+## Getting Started
+
+The solution has three tiers: `TodoListApp.WebApi` (the Web API), `TodoListApp.WebApp` (the MVC web app, which calls the API), and SQLite databases created automatically on first run. There is also a `TodoListApp.WebApi.Tests` project with unit tests for the API's database services.
+
+### Prerequisites
+
+* [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+
+### Running the application
+
+Both `TodoListApp.WebApi` and `TodoListApp.WebApp` must be running at the same time — the web app has no data access of its own and calls the API for everything.
+
+1. Restore and build the whole solution:
+   ```
+   dotnet build TodoListApp.sln
+   ```
+2. Start the Web API (in its own terminal):
+   ```
+   dotnet run --project TodoListApp.WebApi
+   ```
+   It listens on `http://localhost:5143` and exposes a Swagger UI at `/swagger`. On first run it creates and migrates `todolist.db` (SQLite) in the project folder.
+3. Start the Web App (in a second terminal):
+   ```
+   dotnet run --project TodoListApp.WebApp
+   ```
+   It listens on `http://localhost:5217` and creates/migrates `users.db` (SQLite, ASP.NET Core Identity) on first run.
+4. Open `http://localhost:5217` in a browser, sign up for an account, and sign in.
+
+### Authentication between the two tiers
+
+The Web App authenticates its own users with ASP.NET Core Identity (cookie auth), then calls the Web API using short-lived JWT bearer tokens it mints per request. Both projects' `appsettings.json` have a `Jwt` section (`SigningKey`, `Issuer`, `Audience`) that **must match exactly** between the two projects — if you change one, change the other the same way, or API calls from the web app will fail with 401 Unauthorized.
+
+The `TodoListWebApi:BaseUrl` setting in `TodoListApp.WebApp/appsettings.json` must point at wherever the Web API is actually listening (defaults to `http://localhost:5143/`, matching the default `dotnet run` port above).
+
+### Running the tests
+
+```
+dotnet test TodoListApp.WebApi.Tests
+```
+
 ## Backlog
 
 The application functional requirements are described in the [Functional Requirements](functional-requirements.md) document.

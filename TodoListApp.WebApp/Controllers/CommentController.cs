@@ -34,7 +34,11 @@ public class CommentController : Controller
     {
         if (!string.IsNullOrWhiteSpace(text))
         {
-            await this.commentService.AddCommentAsync(taskId, text);
+            var added = await this.commentService.AddCommentAsync(taskId, text);
+            if (added is null)
+            {
+                return this.NotFound();
+            }
         }
 
         return this.RedirectToAction("Details", "TodoTask", new { id = taskId });
@@ -44,12 +48,18 @@ public class CommentController : Controller
     /// Shows the form used to edit an existing comment.
     /// </summary>
     /// <param name="id">The identifier of the comment.</param>
-    /// <param name="taskId">The identifier of the task the comment belongs to.</param>
-    /// <param name="text">The current text of the comment.</param>
     /// <returns>The edit comment view.</returns>
     [HttpGet]
-    public IActionResult Edit(int id, int taskId, string text) =>
-        this.View(new CommentModel { Id = id, TaskId = taskId, Text = text });
+    public async Task<IActionResult> Edit(int id)
+    {
+        var comment = await this.commentService.GetCommentAsync(id);
+        if (comment is null)
+        {
+            return this.NotFound();
+        }
+
+        return this.View(comment);
+    }
 
     /// <summary>
     /// Updates an existing comment.
@@ -67,7 +77,11 @@ public class CommentController : Controller
             return this.View(model);
         }
 
-        await this.commentService.UpdateCommentAsync(model.Id, model.Text);
+        var updated = await this.commentService.UpdateCommentAsync(model.Id, model.Text);
+        if (!updated)
+        {
+            return this.NotFound();
+        }
 
         return this.RedirectToAction("Details", "TodoTask", new { id = model.TaskId });
     }
@@ -76,12 +90,18 @@ public class CommentController : Controller
     /// Shows the confirmation page used to delete an existing comment.
     /// </summary>
     /// <param name="id">The identifier of the comment.</param>
-    /// <param name="taskId">The identifier of the task the comment belongs to.</param>
-    /// <param name="text">The current text of the comment.</param>
     /// <returns>The delete confirmation view.</returns>
     [HttpGet]
-    public IActionResult Delete(int id, int taskId, string text) =>
-        this.View(new CommentModel { Id = id, TaskId = taskId, Text = text });
+    public async Task<IActionResult> Delete(int id)
+    {
+        var comment = await this.commentService.GetCommentAsync(id);
+        if (comment is null)
+        {
+            return this.NotFound();
+        }
+
+        return this.View(comment);
+    }
 
     /// <summary>
     /// Deletes an existing comment.
@@ -94,7 +114,11 @@ public class CommentController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id, int taskId)
     {
-        await this.commentService.DeleteCommentAsync(id);
+        var deleted = await this.commentService.DeleteCommentAsync(id);
+        if (!deleted)
+        {
+            return this.NotFound();
+        }
 
         return this.RedirectToAction("Details", "TodoTask", new { id = taskId });
     }
