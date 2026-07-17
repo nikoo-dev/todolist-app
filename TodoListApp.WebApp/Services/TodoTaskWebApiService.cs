@@ -21,9 +21,9 @@ public class TodoTaskWebApiService : ITodoTaskWebApiService
     }
 
     /// <inheritdoc/>
-    public async Task<PagedResult<TodoTask>?> GetTasksAsync(int todoListId, string userId, int pageNumber, int pageSize)
+    public async Task<PagedResult<TodoTask>?> GetTasksAsync(int todoListId, int pageNumber, int pageSize)
     {
-        var url = $"api/todolists/{todoListId}/tasks?userId={Uri.EscapeDataString(userId)}&pageNumber={pageNumber}&pageSize={pageSize}";
+        var url = $"api/todolists/{todoListId}/tasks?pageNumber={pageNumber}&pageSize={pageSize}";
         using var response = await this.httpClient.GetAsync(new Uri(url, UriKind.Relative));
 
         if (response.StatusCode == HttpStatusCode.NotFound)
@@ -44,10 +44,9 @@ public class TodoTaskWebApiService : ITodoTaskWebApiService
     }
 
     /// <inheritdoc/>
-    public async Task<TodoTask?> GetTaskAsync(int id, string userId)
+    public async Task<TodoTask?> GetTaskAsync(int id)
     {
-        var url = $"api/tasks/{id}?userId={Uri.EscapeDataString(userId)}";
-        using var response = await this.httpClient.GetAsync(new Uri(url, UriKind.Relative));
+        using var response = await this.httpClient.GetAsync(new Uri($"api/tasks/{id}", UriKind.Relative));
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
@@ -61,12 +60,11 @@ public class TodoTaskWebApiService : ITodoTaskWebApiService
     }
 
     /// <inheritdoc/>
-    public async Task<TodoTask?> AddTaskAsync(int todoListId, string userId, TodoTask task)
+    public async Task<TodoTask?> AddTaskAsync(int todoListId, TodoTask task)
     {
         ArgumentNullException.ThrowIfNull(task);
 
-        var url = $"api/todolists/{todoListId}/tasks?userId={Uri.EscapeDataString(userId)}";
-        using var response = await this.httpClient.PostAsJsonAsync(url, ToApiModel(task));
+        using var response = await this.httpClient.PostAsJsonAsync($"api/todolists/{todoListId}/tasks", ToApiModel(task));
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
@@ -80,12 +78,11 @@ public class TodoTaskWebApiService : ITodoTaskWebApiService
     }
 
     /// <inheritdoc/>
-    public async Task<bool> UpdateTaskAsync(string userId, TodoTask task)
+    public async Task<bool> UpdateTaskAsync(TodoTask task)
     {
         ArgumentNullException.ThrowIfNull(task);
 
-        var url = $"api/tasks/{task.Id}?userId={Uri.EscapeDataString(userId)}";
-        using var response = await this.httpClient.PutAsJsonAsync(url, ToApiModel(task));
+        using var response = await this.httpClient.PutAsJsonAsync($"api/tasks/{task.Id}", ToApiModel(task));
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
@@ -98,10 +95,9 @@ public class TodoTaskWebApiService : ITodoTaskWebApiService
     }
 
     /// <inheritdoc/>
-    public async Task<bool> DeleteTaskAsync(int id, string userId)
+    public async Task<bool> DeleteTaskAsync(int id)
     {
-        var url = $"api/tasks/{id}?userId={Uri.EscapeDataString(userId)}";
-        using var response = await this.httpClient.DeleteAsync(new Uri(url, UriKind.Relative));
+        using var response = await this.httpClient.DeleteAsync(new Uri($"api/tasks/{id}", UriKind.Relative));
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
@@ -115,14 +111,13 @@ public class TodoTaskWebApiService : ITodoTaskWebApiService
 
     /// <inheritdoc/>
     public async Task<PagedResult<TodoTask>> GetAssignedTasksAsync(
-        string userId,
         TodoTaskStatus? statusFilter,
         bool showAll,
         string? sortBy,
         int pageNumber,
         int pageSize)
     {
-        var url = $"api/tasks/assigned?userId={Uri.EscapeDataString(userId)}&showAll={showAll}&pageNumber={pageNumber}&pageSize={pageSize}";
+        var url = $"api/tasks/assigned?showAll={showAll}&pageNumber={pageNumber}&pageSize={pageSize}";
         if (statusFilter.HasValue)
         {
             url += $"&status={(int)statusFilter.Value}";
@@ -145,9 +140,9 @@ public class TodoTaskWebApiService : ITodoTaskWebApiService
     }
 
     /// <inheritdoc/>
-    public async Task<bool> UpdateTaskStatusAsync(int id, string userId, TodoTaskStatus status)
+    public async Task<bool> UpdateTaskStatusAsync(int id, TodoTaskStatus status)
     {
-        var url = $"api/tasks/{id}/status?userId={Uri.EscapeDataString(userId)}&status={(int)status}";
+        var url = $"api/tasks/{id}/status?status={(int)status}";
         using var response = await this.httpClient.PatchAsync(new Uri(url, UriKind.Relative), content: null);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
@@ -162,14 +157,13 @@ public class TodoTaskWebApiService : ITodoTaskWebApiService
 
     /// <inheritdoc/>
     public async Task<PagedResult<TodoTask>> SearchTasksAsync(
-        string userId,
         string? title,
         DateTime? createdDate,
         DateTime? dueDate,
         int pageNumber,
         int pageSize)
     {
-        var url = $"api/tasks/search?userId={Uri.EscapeDataString(userId)}&pageNumber={pageNumber}&pageSize={pageSize}";
+        var url = $"api/tasks/search?pageNumber={pageNumber}&pageSize={pageSize}";
         if (!string.IsNullOrWhiteSpace(title))
         {
             url += $"&title={Uri.EscapeDataString(title)}";

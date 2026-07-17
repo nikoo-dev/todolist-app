@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TodoListApp.WebApp.Services;
@@ -24,10 +23,6 @@ public class TagController : Controller
         this.tagService = tagService;
     }
 
-    private string CurrentUserId =>
-        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
-        ?? throw new InvalidOperationException("The current user identifier could not be resolved.");
-
     /// <summary>
     /// Shows the list of all tags.
     /// </summary>
@@ -35,7 +30,7 @@ public class TagController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        var tags = await this.tagService.GetAllTagsAsync(this.CurrentUserId);
+        var tags = await this.tagService.GetAllTagsAsync();
 
         return this.View(tags);
     }
@@ -49,7 +44,7 @@ public class TagController : Controller
     [HttpGet]
     public async Task<IActionResult> Tasks(int id, int pageNumber = 1)
     {
-        var page = await this.tagService.GetTasksByTagAsync(id, this.CurrentUserId, pageNumber, PageSize);
+        var page = await this.tagService.GetTasksByTagAsync(id, pageNumber, PageSize);
         this.ViewBag.TagId = id;
 
         return this.View(page);
@@ -67,7 +62,7 @@ public class TagController : Controller
     {
         if (!string.IsNullOrWhiteSpace(tagName))
         {
-            await this.tagService.AddTagToTaskAsync(taskId, this.CurrentUserId, tagName);
+            await this.tagService.AddTagToTaskAsync(taskId, tagName);
         }
 
         return this.RedirectToAction("Details", "TodoTask", new { id = taskId });
@@ -83,7 +78,7 @@ public class TagController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> RemoveFromTask(int taskId, int tagId)
     {
-        await this.tagService.RemoveTagFromTaskAsync(taskId, tagId, this.CurrentUserId);
+        await this.tagService.RemoveTagFromTaskAsync(taskId, tagId);
 
         return this.RedirectToAction("Details", "TodoTask", new { id = taskId });
     }

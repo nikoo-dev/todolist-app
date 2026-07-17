@@ -25,6 +25,7 @@ public class TodoListDatabaseService : ITodoListDatabaseService
     public async Task<PagedResult<TodoList>> GetTodoListsAsync(string ownerId, int pageNumber, int pageSize)
     {
         var query = this.context.TodoLists
+            .AsNoTracking()
             .Where(l => l.OwnerId == ownerId)
             .OrderBy(l => l.Title);
 
@@ -55,6 +56,7 @@ public class TodoListDatabaseService : ITodoListDatabaseService
     public async Task<TodoList?> GetTodoListAsync(int id, string ownerId)
     {
         var entity = await this.context.TodoLists
+            .AsNoTracking()
             .Include(l => l.Tasks)
             .FirstOrDefaultAsync(l => l.Id == id && l.OwnerId == ownerId);
 

@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TodoListApp.WebApp.Models;
@@ -25,10 +24,6 @@ public class SearchController : Controller
         this.taskService = taskService;
     }
 
-    private string CurrentUserId =>
-        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
-        ?? throw new InvalidOperationException("The current user identifier could not be resolved.");
-
     /// <summary>
     /// Shows the search page.
     /// </summary>
@@ -47,7 +42,7 @@ public class SearchController : Controller
     [HttpGet]
     public async Task<IActionResult> Results(string? title, DateTime? createdDate, DateTime? dueDate, int pageNumber = 1)
     {
-        var page = await this.taskService.SearchTasksAsync(this.CurrentUserId, title, createdDate, dueDate, pageNumber, PageSize);
+        var page = await this.taskService.SearchTasksAsync(title, createdDate, dueDate, pageNumber, PageSize);
 
         this.ViewBag.Title = title;
         this.ViewBag.CreatedDate = createdDate;

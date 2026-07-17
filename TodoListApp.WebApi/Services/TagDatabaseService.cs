@@ -25,6 +25,7 @@ public class TagDatabaseService : ITagDatabaseService
     public async Task<IEnumerable<TagModel>> GetAllTagsAsync(string userId)
     {
         var tags = await this.context.Tags
+            .AsNoTracking()
             .Where(tag => tag.Tasks.Any(t => t.AssigneeId == userId || (t.TodoList != null && t.TodoList.OwnerId == userId)))
             .OrderBy(tag => tag.Name)
             .ToListAsync();
@@ -36,6 +37,7 @@ public class TagDatabaseService : ITagDatabaseService
     public async Task<PagedResult<TodoTask>> GetTasksByTagAsync(int tagId, string userId, int pageNumber, int pageSize)
     {
         var query = this.context.TodoTasks
+            .AsNoTracking()
             .Include(t => t.TodoList)
             .Include(t => t.Tags)
             .Include(t => t.Comments)
@@ -61,6 +63,7 @@ public class TagDatabaseService : ITagDatabaseService
     public async Task<IEnumerable<TagModel>?> GetTagsForTaskAsync(int taskId, string userId)
     {
         var task = await this.FindAccessibleTaskQuery(userId)
+            .AsNoTracking()
             .FirstOrDefaultAsync(t => t.Id == taskId);
 
         return task?.Tags.OrderBy(tag => tag.Name).Select(ToApiModel);
@@ -69,6 +72,8 @@ public class TagDatabaseService : ITagDatabaseService
     /// <inheritdoc/>
     public async Task<TagModel?> AddTagToTaskAsync(int taskId, string userId, string tagName)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(tagName);
+
         var task = await this.context.TodoTasks
             .Include(t => t.TodoList)
             .Include(t => t.Tags)

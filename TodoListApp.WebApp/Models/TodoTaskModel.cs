@@ -58,9 +58,14 @@ public class TodoTaskModel
     public string TodoListTitle { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the display name of the user the task is assigned to.
+    /// Gets or sets the identifier of the user the task is assigned to.
     /// </summary>
     [Display(Name = "Assigned To")]
+    public string AssigneeId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the display name of the user the task is assigned to.
+    /// </summary>
     public string AssigneeName { get; set; } = string.Empty;
 
     /// <summary>

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TodoListApp.WebApi.Entities;
@@ -29,30 +30,27 @@ public class TodoTaskController : ControllerBase
         this.logger = logger;
     }
 
+    private string CurrentUserId =>
+        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? throw new InvalidOperationException("The authenticated request is missing its user identifier claim.");
+
     /// <summary>
-    /// Gets a page of tasks that belong to the specified to-do list.
+    /// Gets a page of tasks that belong to the specified to-do list, owned by the current user.
     /// </summary>
     /// <param name="todoListId">The identifier of the to-do list.</param>
-    /// <param name="userId">The identifier of the to-do list owner.</param>
     /// <param name="pageNumber">The page number, starting from 1.</param>
     /// <param name="pageSize">The number of items per page.</param>
     /// <returns>A page of tasks.</returns>
     [HttpGet("todolists/{todoListId:int}/tasks")]
     public async Task<ActionResult<PagedResult<TodoTaskModel>>> GetTasks(
         int todoListId,
-        [FromQuery] string userId,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            return this.BadRequest("The userId query parameter is required.");
-        }
-
         pageNumber = Math.Max(pageNumber, 1);
         pageSize = Math.Clamp(pageSize, 1, 200);
 
-        var page = await this.taskService.GetTasksAsync(todoListId, userId, pageNumber, pageSize);
+        var page = await this.taskService.GetTasksAsync(todoListId, this.CurrentUserId, pageNumber, pageSize);
         if (page is null)
         {
             return this.NotFound();
@@ -70,20 +68,14 @@ public class TodoTaskController : ControllerBase
     }
 
     /// <summary>
-    /// Gets a single task.
+    /// Gets a single task the current user has access to, either as the to-do list owner or as the assignee.
     /// </summary>
     /// <param name="id">The identifier of the task.</param>
-    /// <param name="userId">The identifier of the to-do list owner.</param>
     /// <returns>The task.</returns>
     [HttpGet("tasks/{id:int}")]
-    public async Task<ActionResult<TodoTaskModel>> GetTask(int id, [FromQuery] string userId)
+    public async Task<ActionResult<TodoTaskModel>> GetTask(int id)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            return this.BadRequest("The userId query parameter is required.");
-        }
-
-        var task = await this.taskService.GetTaskAsync(id, userId);
+        var task = await this.taskService.GetTaskAsync(id, this.CurrentUserId);
         if (task is null)
         {
             return this.NotFound();
@@ -93,25 +85,22 @@ public class TodoTaskController : ControllerBase
     }
 
     /// <summary>
-    /// Adds a new task to the specified to-do list.
+    /// Adds a new task to the specified to-do list, owned by the current user.
     /// </summary>
     /// <param name="todoListId">The identifier of the to-do list.</param>
-    /// <param name="userId">The identifier of the to-do list owner.</param>
     /// <param name="model">The task data.</param>
     /// <returns>The added task.</returns>
     [HttpPost("todolists/{todoListId:int}/tasks")]
-    public async Task<ActionResult<TodoTaskModel>> AddTask(int todoListId, [FromQuery] string userId, [FromBody] TodoTaskModel model)
+    public async Task<ActionResult<TodoTaskModel>> AddTask(int todoListId, [FromBody] TodoTaskModel model)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            return this.BadRequest("The userId query parameter is required.");
-        }
+        ArgumentNullException.ThrowIfNull(model);
 
         if (!this.ModelState.IsValid)
         {
             return this.BadRequest(this.ModelState);
         }
 
+        var userId = this.CurrentUserId;
         var task = await this.taskService.AddTaskAsync(
             new Models.TodoTask
             {
@@ -130,23 +119,19 @@ public class TodoTaskController : ControllerBase
 
         this.logger.TaskCreated(task.Id, todoListId, userId);
 
-        return this.CreatedAtAction(nameof(this.GetTask), new { id = task.Id, userId }, ToApiModel(task));
+        return this.CreatedAtAction(nameof(this.GetTask), new { id = task.Id }, ToApiModel(task));
     }
 
     /// <summary>
-    /// Updates an existing task.
+    /// Updates an existing task owned by the current user.
     /// </summary>
     /// <param name="id">The identifier of the task.</param>
-    /// <param name="userId">The identifier of the to-do list owner.</param>
     /// <param name="model">The updated task data.</param>
     /// <returns>No content if the update succeeded.</returns>
     [HttpPut("tasks/{id:int}")]
-    public async Task<IActionResult> UpdateTask(int id, [FromQuery] string userId, [FromBody] TodoTaskModel model)
+    public async Task<IActionResult> UpdateTask(int id, [FromBody] TodoTaskModel model)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            return this.BadRequest("The userId query parameter is required.");
-        }
+        ArgumentNullException.ThrowIfNull(model);
 
         if (!this.ModelState.IsValid)
         {
@@ -161,8 +146,9 @@ public class TodoTaskController : ControllerBase
                 Description = model.Description,
                 DueDate = model.DueDate,
                 Status = model.Status,
+                AssigneeId = model.AssigneeId,
             },
-            userId);
+            this.CurrentUserId);
 
         if (!updated)
         {
@@ -173,19 +159,14 @@ public class TodoTaskController : ControllerBase
     }
 
     /// <summary>
-    /// Deletes an existing task.
+    /// Deletes an existing task owned by the current user.
     /// </summary>
     /// <param name="id">The identifier of the task.</param>
-    /// <param name="userId">The identifier of the to-do list owner.</param>
     /// <returns>No content if the delete succeeded.</returns>
     [HttpDelete("tasks/{id:int}")]
-    public async Task<IActionResult> DeleteTask(int id, [FromQuery] string userId)
+    public async Task<IActionResult> DeleteTask(int id)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            return this.BadRequest("The userId query parameter is required.");
-        }
-
+        var userId = this.CurrentUserId;
         var deleted = await this.taskService.DeleteTaskAsync(id, userId);
         if (!deleted)
         {
@@ -200,7 +181,6 @@ public class TodoTaskController : ControllerBase
     /// <summary>
     /// Gets a page of tasks assigned to the current user.
     /// </summary>
-    /// <param name="userId">The identifier of the assignee.</param>
     /// <param name="status">The status to filter by. When omitted, only active tasks are returned unless <paramref name="showAll"/> is <see langword="true"/>.</param>
     /// <param name="showAll">When <see langword="true"/>, tasks of every status are returned.</param>
     /// <param name="sortBy">The field to sort by: <c>"title"</c> or <c>"dueDate"</c> (the default).</param>
@@ -209,22 +189,16 @@ public class TodoTaskController : ControllerBase
     /// <returns>A page of assigned tasks.</returns>
     [HttpGet("tasks/assigned")]
     public async Task<ActionResult<PagedResult<TodoTaskModel>>> GetAssignedTasks(
-        [FromQuery] string userId,
         [FromQuery] TodoTaskStatus? status = null,
         [FromQuery] bool showAll = false,
         [FromQuery] string? sortBy = null,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            return this.BadRequest("The userId query parameter is required.");
-        }
-
         pageNumber = Math.Max(pageNumber, 1);
         pageSize = Math.Clamp(pageSize, 1, 200);
 
-        var page = await this.taskService.GetAssignedTasksAsync(userId, status, showAll, sortBy, pageNumber, pageSize);
+        var page = await this.taskService.GetAssignedTasksAsync(this.CurrentUserId, status, showAll, sortBy, pageNumber, pageSize);
 
         var result = new PagedResult<TodoTaskModel>
         {
@@ -241,18 +215,12 @@ public class TodoTaskController : ControllerBase
     /// Updates the status of a task assigned to the current user.
     /// </summary>
     /// <param name="id">The identifier of the task.</param>
-    /// <param name="userId">The identifier of the assignee.</param>
     /// <param name="status">The new status.</param>
     /// <returns>No content if the update succeeded.</returns>
     [HttpPatch("tasks/{id:int}/status")]
-    public async Task<IActionResult> UpdateTaskStatus(int id, [FromQuery] string userId, [FromQuery] TodoTaskStatus status)
+    public async Task<IActionResult> UpdateTaskStatus(int id, [FromQuery] TodoTaskStatus status)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            return this.BadRequest("The userId query parameter is required.");
-        }
-
-        var updated = await this.taskService.UpdateTaskStatusAsync(id, userId, status);
+        var updated = await this.taskService.UpdateTaskStatusAsync(id, this.CurrentUserId, status);
         if (!updated)
         {
             return this.NotFound();
@@ -264,7 +232,6 @@ public class TodoTaskController : ControllerBase
     /// <summary>
     /// Searches the tasks assigned to the current user by title, creation date, or due date.
     /// </summary>
-    /// <param name="userId">The identifier of the assignee.</param>
     /// <param name="title">The text to search for in the task title.</param>
     /// <param name="createdDate">The exact creation date to filter by.</param>
     /// <param name="dueDate">The exact due date to filter by.</param>
@@ -273,22 +240,16 @@ public class TodoTaskController : ControllerBase
     /// <returns>A page of matching tasks.</returns>
     [HttpGet("tasks/search")]
     public async Task<ActionResult<PagedResult<TodoTaskModel>>> SearchTasks(
-        [FromQuery] string userId,
         [FromQuery] string? title = null,
         [FromQuery] DateTime? createdDate = null,
         [FromQuery] DateTime? dueDate = null,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            return this.BadRequest("The userId query parameter is required.");
-        }
-
         pageNumber = Math.Max(pageNumber, 1);
         pageSize = Math.Clamp(pageSize, 1, 200);
 
-        var page = await this.taskService.SearchTasksAsync(userId, title, createdDate, dueDate, pageNumber, pageSize);
+        var page = await this.taskService.SearchTasksAsync(this.CurrentUserId, title, createdDate, dueDate, pageNumber, pageSize);
 
         var result = new PagedResult<TodoTaskModel>
         {

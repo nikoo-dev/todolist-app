@@ -1,7 +1,8 @@
-using Microsoft.AspNetCore.Authentication;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using TodoListApp.WebApi.Authentication;
 using TodoListApp.WebApi.Data;
 using TodoListApp.WebApi.Middleware;
 using TodoListApp.WebApi.Services;
@@ -15,7 +16,7 @@ builder.Services.AddSwaggerGen(options =>
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "TodoListApp.WebApi", Version = "v1" });
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "Enter the API key as: Bearer {key}",
+        Description = "Enter the per-user JWT issued by TodoListApp.WebApp as: Bearer {token}",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
@@ -36,11 +37,26 @@ builder.Services.AddSwaggerGen(options =>
 var connectionString = builder.Configuration.GetConnectionString("TodoListDb") ?? "Data Source=todolist.db";
 builder.Services.AddDbContext<TodoListDbContext>(options => options.UseSqlite(connectionString));
 
+var jwtSigningKey = builder.Configuration["Jwt:SigningKey"] ?? throw new InvalidOperationException("Jwt:SigningKey is not configured.");
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "TodoListApp";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "TodoListApp.WebApi";
+
 builder.Services
-    .AddAuthentication(ApiKeyAuthenticationOptions.SchemeName)
-    .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(
-        ApiKeyAuthenticationOptions.SchemeName,
-        options => options.ApiKey = builder.Configuration["Authentication:ApiKey"] ?? string.Empty);
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSigningKey)),
+            ValidateIssuer = true,
+            ValidIssuer = jwtIssuer,
+            ValidateAudience = true,
+            ValidAudience = jwtAudience,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromSeconds(30),
+        };
+    });
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<ITodoListDatabaseService, TodoListDatabaseService>();

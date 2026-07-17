@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TodoListApp.WebApp.Models;
@@ -25,10 +24,6 @@ public class AssignedTasksController : Controller
         this.taskService = taskService;
     }
 
-    private string CurrentUserId =>
-        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
-        ?? throw new InvalidOperationException("The current user identifier could not be resolved.");
-
     /// <summary>
     /// Shows the list of tasks assigned to the current user.
     /// </summary>
@@ -42,7 +37,7 @@ public class AssignedTasksController : Controller
         var showAll = string.Equals(statusFilter, "All", StringComparison.OrdinalIgnoreCase);
         TodoTaskStatus? status = Enum.TryParse<TodoTaskStatus>(statusFilter, true, out var parsed) ? parsed : null;
 
-        var page = await this.taskService.GetAssignedTasksAsync(this.CurrentUserId, status, showAll, sortBy, pageNumber, PageSize);
+        var page = await this.taskService.GetAssignedTasksAsync(status, showAll, sortBy, pageNumber, PageSize);
 
         this.ViewBag.StatusFilter = statusFilter;
         this.ViewBag.SortBy = sortBy;
@@ -68,7 +63,7 @@ public class AssignedTasksController : Controller
         string sortBy = "dueDate",
         int pageNumber = 1)
     {
-        await this.taskService.UpdateTaskStatusAsync(id, this.CurrentUserId, status);
+        await this.taskService.UpdateTaskStatusAsync(id, status);
 
         return this.RedirectToAction(nameof(this.Index), new { statusFilter, sortBy, pageNumber });
     }

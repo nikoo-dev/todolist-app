@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TodoListApp.WebApi.Logging;
@@ -28,28 +29,25 @@ public class TodoListController : ControllerBase
         this.logger = logger;
     }
 
+    private string CurrentUserId =>
+        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? throw new InvalidOperationException("The authenticated request is missing its user identifier claim.");
+
     /// <summary>
-    /// Gets a page of to-do lists owned by the specified user.
+    /// Gets a page of to-do lists owned by the current user.
     /// </summary>
-    /// <param name="userId">The identifier of the owner.</param>
     /// <param name="pageNumber">The page number, starting from 1.</param>
     /// <param name="pageSize">The number of items per page.</param>
     /// <returns>A page of to-do lists.</returns>
     [HttpGet]
     public async Task<ActionResult<PagedResult<TodoListModel>>> GetTodoLists(
-        [FromQuery] string userId,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            return this.BadRequest("The userId query parameter is required.");
-        }
-
         pageNumber = Math.Max(pageNumber, 1);
         pageSize = Math.Clamp(pageSize, 1, 100);
 
-        var page = await this.todoListService.GetTodoListsAsync(userId, pageNumber, pageSize);
+        var page = await this.todoListService.GetTodoListsAsync(this.CurrentUserId, pageNumber, pageSize);
 
         var result = new PagedResult<TodoListModel>
         {
@@ -63,20 +61,14 @@ public class TodoListController : ControllerBase
     }
 
     /// <summary>
-    /// Gets a single to-do list owned by the specified user.
+    /// Gets a single to-do list owned by the current user.
     /// </summary>
     /// <param name="id">The identifier of the to-do list.</param>
-    /// <param name="userId">The identifier of the owner.</param>
     /// <returns>The to-do list.</returns>
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<TodoListModel>> GetTodoList(int id, [FromQuery] string userId)
+    public async Task<ActionResult<TodoListModel>> GetTodoList(int id)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            return this.BadRequest("The userId query parameter is required.");
-        }
-
-        var todoList = await this.todoListService.GetTodoListAsync(id, userId);
+        var todoList = await this.todoListService.GetTodoListAsync(id, this.CurrentUserId);
         if (todoList is null)
         {
             return this.NotFound();
@@ -88,22 +80,19 @@ public class TodoListController : ControllerBase
     /// <summary>
     /// Adds a new to-do list.
     /// </summary>
-    /// <param name="userId">The identifier of the owner.</param>
     /// <param name="model">The to-do list data.</param>
     /// <returns>The added to-do list.</returns>
     [HttpPost]
-    public async Task<ActionResult<TodoListModel>> AddTodoList([FromQuery] string userId, [FromBody] TodoListModel model)
+    public async Task<ActionResult<TodoListModel>> AddTodoList([FromBody] TodoListModel model)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            return this.BadRequest("The userId query parameter is required.");
-        }
+        ArgumentNullException.ThrowIfNull(model);
 
         if (!this.ModelState.IsValid)
         {
             return this.BadRequest(this.ModelState);
         }
 
+        var userId = this.CurrentUserId;
         var todoList = await this.todoListService.AddTodoListAsync(new Models.TodoList
         {
             Title = model.Title,
@@ -113,23 +102,19 @@ public class TodoListController : ControllerBase
 
         this.logger.TodoListCreated(todoList.Id, userId);
 
-        return this.CreatedAtAction(nameof(this.GetTodoList), new { id = todoList.Id, userId }, ToApiModel(todoList));
+        return this.CreatedAtAction(nameof(this.GetTodoList), new { id = todoList.Id }, ToApiModel(todoList));
     }
 
     /// <summary>
     /// Updates an existing to-do list.
     /// </summary>
     /// <param name="id">The identifier of the to-do list.</param>
-    /// <param name="userId">The identifier of the owner.</param>
     /// <param name="model">The updated to-do list data.</param>
     /// <returns>No content if the update succeeded.</returns>
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> UpdateTodoList(int id, [FromQuery] string userId, [FromBody] TodoListModel model)
+    public async Task<IActionResult> UpdateTodoList(int id, [FromBody] TodoListModel model)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            return this.BadRequest("The userId query parameter is required.");
-        }
+        ArgumentNullException.ThrowIfNull(model);
 
         if (!this.ModelState.IsValid)
         {
@@ -141,7 +126,7 @@ public class TodoListController : ControllerBase
             Id = id,
             Title = model.Title,
             Description = model.Description,
-            OwnerId = userId,
+            OwnerId = this.CurrentUserId,
         });
 
         if (!updated)
@@ -156,16 +141,11 @@ public class TodoListController : ControllerBase
     /// Deletes an existing to-do list.
     /// </summary>
     /// <param name="id">The identifier of the to-do list.</param>
-    /// <param name="userId">The identifier of the owner.</param>
     /// <returns>No content if the delete succeeded.</returns>
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> DeleteTodoList(int id, [FromQuery] string userId)
+    public async Task<IActionResult> DeleteTodoList(int id)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            return this.BadRequest("The userId query parameter is required.");
-        }
-
+        var userId = this.CurrentUserId;
         var deleted = await this.todoListService.DeleteTodoListAsync(id, userId);
         if (!deleted)
         {

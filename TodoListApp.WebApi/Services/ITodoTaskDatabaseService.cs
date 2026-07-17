@@ -19,12 +19,13 @@ public interface ITodoTaskDatabaseService
     Task<PagedResult<TodoTask>?> GetTasksAsync(int todoListId, string ownerId, int pageNumber, int pageSize);
 
     /// <summary>
-    /// Gets a single task that belongs to a to-do list owned by the specified user.
+    /// Gets a single task the specified user has access to, either because they own the containing
+    /// to-do list or because the task is assigned to them.
     /// </summary>
     /// <param name="id">The identifier of the task.</param>
-    /// <param name="ownerId">The identifier of the to-do list owner.</param>
-    /// <returns>The task, or <see langword="null"/> if it does not exist or is not owned by the user.</returns>
-    Task<TodoTask?> GetTaskAsync(int id, string ownerId);
+    /// <param name="userId">The identifier of the current user.</param>
+    /// <returns>The task, or <see langword="null"/> if it does not exist or the user does not have access to it.</returns>
+    Task<TodoTask?> GetTaskAsync(int id, string userId);
 
     /// <summary>
     /// Adds a new task to a to-do list owned by the specified user.
@@ -35,7 +36,8 @@ public interface ITodoTaskDatabaseService
     Task<TodoTask?> AddTaskAsync(TodoTask task, string ownerId);
 
     /// <summary>
-    /// Updates an existing task that belongs to a to-do list owned by the specified user.
+    /// Updates an existing task that belongs to a to-do list owned by the specified user, including
+    /// reassigning it to a different user when <see cref="TodoTask.AssigneeId"/> is set.
     /// </summary>
     /// <param name="task">The task with updated data.</param>
     /// <param name="ownerId">The identifier of the to-do list owner.</param>

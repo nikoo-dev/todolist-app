@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using TodoListApp.WebApp.Services;
 
@@ -27,10 +26,7 @@ public class TaskTagsViewComponent : ViewComponent
     /// <returns>The rendered view component result.</returns>
     public async Task<IViewComponentResult> InvokeAsync(int taskId)
     {
-        var userId = this.UserClaimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new InvalidOperationException("The current user identifier could not be resolved.");
-
-        var tags = await this.tagService.GetTagsForTaskAsync(taskId, userId);
+        var tags = await this.tagService.GetTagsForTaskAsync(taskId);
         this.ViewBag.TaskId = taskId;
 
         return this.View(tags);

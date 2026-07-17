@@ -25,19 +25,19 @@ public interface ICommentDatabaseService
     Task<CommentModel?> AddCommentAsync(int taskId, string userId, string text);
 
     /// <summary>
-    /// Updates an existing comment on a to-do list owned by the specified user.
+    /// Updates an existing comment. Allowed for the to-do list owner (per US25) or the comment's own author.
     /// </summary>
     /// <param name="commentId">The identifier of the comment.</param>
-    /// <param name="ownerId">The identifier of the to-do list owner.</param>
+    /// <param name="userId">The identifier of the current user.</param>
     /// <param name="text">The updated text of the comment.</param>
     /// <returns><see langword="true"/> if the comment was updated; otherwise, <see langword="false"/>.</returns>
-    Task<bool> UpdateCommentAsync(int commentId, string ownerId, string text);
+    Task<bool> UpdateCommentAsync(int commentId, string userId, string text);
 
     /// <summary>
-    /// Deletes an existing comment on a to-do list owned by the specified user.
+    /// Deletes an existing comment. Allowed for the to-do list owner (per US24) or the comment's own author.
     /// </summary>
     /// <param name="commentId">The identifier of the comment.</param>
-    /// <param name="ownerId">The identifier of the to-do list owner.</param>
+    /// <param name="userId">The identifier of the current user.</param>
     /// <returns><see langword="true"/> if the comment was deleted; otherwise, <see langword="false"/>.</returns>
-    Task<bool> DeleteCommentAsync(int commentId, string ownerId);
+    Task<bool> DeleteCommentAsync(int commentId, string userId);
 }

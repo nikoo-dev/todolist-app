@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TodoListApp.WebApi.Models;
@@ -24,21 +25,19 @@ public class CommentController : ControllerBase
         this.commentService = commentService;
     }
 
+    private string CurrentUserId =>
+        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? throw new InvalidOperationException("The authenticated request is missing its user identifier claim.");
+
     /// <summary>
     /// Gets the comments added to a task.
     /// </summary>
     /// <param name="taskId">The identifier of the task.</param>
-    /// <param name="userId">The identifier of the user.</param>
     /// <returns>The comments.</returns>
     [HttpGet("tasks/{taskId:int}/comments")]
-    public async Task<ActionResult<IEnumerable<CommentModel>>> GetComments(int taskId, [FromQuery] string userId)
+    public async Task<ActionResult<IEnumerable<CommentModel>>> GetComments(int taskId)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            return this.BadRequest("The userId query parameter is required.");
-        }
-
-        var comments = await this.commentService.GetCommentsForTaskAsync(taskId, userId);
+        var comments = await this.commentService.GetCommentsForTaskAsync(taskId, this.CurrentUserId);
         if (comments is null)
         {
             return this.NotFound();
@@ -51,52 +50,44 @@ public class CommentController : ControllerBase
     /// Adds a new comment to a task.
     /// </summary>
     /// <param name="taskId">The identifier of the task.</param>
-    /// <param name="userId">The identifier of the comment author.</param>
     /// <param name="model">The comment data.</param>
     /// <returns>The added comment.</returns>
     [HttpPost("tasks/{taskId:int}/comments")]
-    public async Task<ActionResult<CommentModel>> AddComment(int taskId, [FromQuery] string userId, [FromBody] CommentModel model)
+    public async Task<ActionResult<CommentModel>> AddComment(int taskId, [FromBody] CommentModel model)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            return this.BadRequest("The userId query parameter is required.");
-        }
+        ArgumentNullException.ThrowIfNull(model);
 
         if (!this.ModelState.IsValid)
         {
             return this.BadRequest(this.ModelState);
         }
 
-        var comment = await this.commentService.AddCommentAsync(taskId, userId, model.Text);
+        var comment = await this.commentService.AddCommentAsync(taskId, this.CurrentUserId, model.Text);
         if (comment is null)
         {
             return this.NotFound();
         }
 
-        return this.CreatedAtAction(nameof(this.GetComments), new { taskId, userId }, comment);
+        return this.CreatedAtAction(nameof(this.GetComments), new { taskId }, comment);
     }
 
     /// <summary>
-    /// Updates an existing comment.
+    /// Updates an existing comment. Allowed for the to-do list owner or the comment's own author.
     /// </summary>
     /// <param name="id">The identifier of the comment.</param>
-    /// <param name="userId">The identifier of the to-do list owner.</param>
     /// <param name="model">The updated comment data.</param>
     /// <returns>No content if the update succeeded.</returns>
     [HttpPut("comments/{id:int}")]
-    public async Task<IActionResult> UpdateComment(int id, [FromQuery] string userId, [FromBody] CommentModel model)
+    public async Task<IActionResult> UpdateComment(int id, [FromBody] CommentModel model)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            return this.BadRequest("The userId query parameter is required.");
-        }
+        ArgumentNullException.ThrowIfNull(model);
 
         if (!this.ModelState.IsValid)
         {
             return this.BadRequest(this.ModelState);
         }
 
-        var updated = await this.commentService.UpdateCommentAsync(id, userId, model.Text);
+        var updated = await this.commentService.UpdateCommentAsync(id, this.CurrentUserId, model.Text);
         if (!updated)
         {
             return this.NotFound();
@@ -106,20 +97,14 @@ public class CommentController : ControllerBase
     }
 
     /// <summary>
-    /// Deletes an existing comment.
+    /// Deletes an existing comment. Allowed for the to-do list owner or the comment's own author.
     /// </summary>
     /// <param name="id">The identifier of the comment.</param>
-    /// <param name="userId">The identifier of the to-do list owner.</param>
     /// <returns>No content if the delete succeeded.</returns>
     [HttpDelete("comments/{id:int}")]
-    public async Task<IActionResult> DeleteComment(int id, [FromQuery] string userId)
+    public async Task<IActionResult> DeleteComment(int id)
     {
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            return this.BadRequest("The userId query parameter is required.");
-        }
-
-        var deleted = await this.commentService.DeleteCommentAsync(id, userId);
+        var deleted = await this.commentService.DeleteCommentAsync(id, this.CurrentUserId);
         if (!deleted)
         {
             return this.NotFound();

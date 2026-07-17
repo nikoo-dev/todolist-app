@@ -1,6 +1,6 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TodoListApp.WebApp.Data;
 using TodoListApp.WebApp.Services;
 
@@ -32,14 +32,17 @@ public class TaskCommentsViewComponent : ViewComponent
     /// <returns>The rendered view component result.</returns>
     public async Task<IViewComponentResult> InvokeAsync(int taskId)
     {
-        var userId = this.UserClaimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new InvalidOperationException("The current user identifier could not be resolved.");
+        var comments = await this.commentService.GetCommentsAsync(taskId);
 
-        var comments = await this.commentService.GetCommentsAsync(taskId, userId);
+        var authorIds = comments.Select(c => c.AuthorId).Distinct().ToList();
+        var authorNames = await this.userManager.Users
+            .AsNoTracking()
+            .Where(u => authorIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, u => u.DisplayName);
+
         foreach (var comment in comments)
         {
-            var author = await this.userManager.FindByIdAsync(comment.AuthorId);
-            comment.AuthorName = author?.DisplayName ?? comment.AuthorId;
+            comment.AuthorName = authorNames.TryGetValue(comment.AuthorId, out var displayName) ? displayName : comment.AuthorId;
         }
 
         this.ViewBag.TaskId = taskId;

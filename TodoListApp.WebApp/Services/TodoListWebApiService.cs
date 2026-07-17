@@ -21,9 +21,9 @@ public class TodoListWebApiService : ITodoListWebApiService
     }
 
     /// <inheritdoc/>
-    public async Task<PagedResult<TodoList>> GetTodoListsAsync(string userId, int pageNumber, int pageSize)
+    public async Task<PagedResult<TodoList>> GetTodoListsAsync(int pageNumber, int pageSize)
     {
-        var url = $"api/todolists?userId={Uri.EscapeDataString(userId)}&pageNumber={pageNumber}&pageSize={pageSize}";
+        var url = $"api/todolists?pageNumber={pageNumber}&pageSize={pageSize}";
         var page = await this.httpClient.GetFromJsonAsync<PagedResult<TodoListWebApiModel>>(url);
 
         return new PagedResult<TodoList>
@@ -36,10 +36,9 @@ public class TodoListWebApiService : ITodoListWebApiService
     }
 
     /// <inheritdoc/>
-    public async Task<TodoList?> GetTodoListAsync(int id, string userId)
+    public async Task<TodoList?> GetTodoListAsync(int id)
     {
-        var url = $"api/todolists/{id}?userId={Uri.EscapeDataString(userId)}";
-        using var response = await this.httpClient.GetAsync(new Uri(url, UriKind.Relative));
+        using var response = await this.httpClient.GetAsync(new Uri($"api/todolists/{id}", UriKind.Relative));
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
@@ -53,12 +52,11 @@ public class TodoListWebApiService : ITodoListWebApiService
     }
 
     /// <inheritdoc/>
-    public async Task<TodoList> AddTodoListAsync(string userId, TodoList todoList)
+    public async Task<TodoList> AddTodoListAsync(TodoList todoList)
     {
         ArgumentNullException.ThrowIfNull(todoList);
 
-        var url = $"api/todolists?userId={Uri.EscapeDataString(userId)}";
-        var response = await this.httpClient.PostAsJsonAsync(url, ToApiModel(todoList));
+        var response = await this.httpClient.PostAsJsonAsync("api/todolists", ToApiModel(todoList));
         response.EnsureSuccessStatusCode();
 
         var created = await response.Content.ReadFromJsonAsync<TodoListWebApiModel>();
@@ -67,12 +65,11 @@ public class TodoListWebApiService : ITodoListWebApiService
     }
 
     /// <inheritdoc/>
-    public async Task<bool> UpdateTodoListAsync(string userId, TodoList todoList)
+    public async Task<bool> UpdateTodoListAsync(TodoList todoList)
     {
         ArgumentNullException.ThrowIfNull(todoList);
 
-        var url = $"api/todolists/{todoList.Id}?userId={Uri.EscapeDataString(userId)}";
-        var response = await this.httpClient.PutAsJsonAsync(url, ToApiModel(todoList));
+        var response = await this.httpClient.PutAsJsonAsync($"api/todolists/{todoList.Id}", ToApiModel(todoList));
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
@@ -85,10 +82,9 @@ public class TodoListWebApiService : ITodoListWebApiService
     }
 
     /// <inheritdoc/>
-    public async Task<bool> DeleteTodoListAsync(int id, string userId)
+    public async Task<bool> DeleteTodoListAsync(int id)
     {
-        var url = $"api/todolists/{id}?userId={Uri.EscapeDataString(userId)}";
-        using var response = await this.httpClient.DeleteAsync(new Uri(url, UriKind.Relative));
+        using var response = await this.httpClient.DeleteAsync(new Uri($"api/todolists/{id}", UriKind.Relative));
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {

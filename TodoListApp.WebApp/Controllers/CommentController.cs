@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TodoListApp.WebApp.Models;
@@ -23,10 +22,6 @@ public class CommentController : Controller
         this.commentService = commentService;
     }
 
-    private string CurrentUserId =>
-        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
-        ?? throw new InvalidOperationException("The current user identifier could not be resolved.");
-
     /// <summary>
     /// Adds a new comment to a task.
     /// </summary>
@@ -39,7 +34,7 @@ public class CommentController : Controller
     {
         if (!string.IsNullOrWhiteSpace(text))
         {
-            await this.commentService.AddCommentAsync(taskId, this.CurrentUserId, text);
+            await this.commentService.AddCommentAsync(taskId, text);
         }
 
         return this.RedirectToAction("Details", "TodoTask", new { id = taskId });
@@ -72,10 +67,21 @@ public class CommentController : Controller
             return this.View(model);
         }
 
-        await this.commentService.UpdateCommentAsync(model.Id, this.CurrentUserId, model.Text);
+        await this.commentService.UpdateCommentAsync(model.Id, model.Text);
 
         return this.RedirectToAction("Details", "TodoTask", new { id = model.TaskId });
     }
+
+    /// <summary>
+    /// Shows the confirmation page used to delete an existing comment.
+    /// </summary>
+    /// <param name="id">The identifier of the comment.</param>
+    /// <param name="taskId">The identifier of the task the comment belongs to.</param>
+    /// <param name="text">The current text of the comment.</param>
+    /// <returns>The delete confirmation view.</returns>
+    [HttpGet]
+    public IActionResult Delete(int id, int taskId, string text) =>
+        this.View(new CommentModel { Id = id, TaskId = taskId, Text = text });
 
     /// <summary>
     /// Deletes an existing comment.
@@ -84,10 +90,11 @@ public class CommentController : Controller
     /// <param name="taskId">The identifier of the task the comment belongs to.</param>
     /// <returns>A redirect back to the task details page.</returns>
     [HttpPost]
+    [ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(int id, int taskId)
+    public async Task<IActionResult> DeleteConfirmed(int id, int taskId)
     {
-        await this.commentService.DeleteCommentAsync(id, this.CurrentUserId);
+        await this.commentService.DeleteCommentAsync(id);
 
         return this.RedirectToAction("Details", "TodoTask", new { id = taskId });
     }

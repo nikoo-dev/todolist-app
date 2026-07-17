@@ -20,18 +20,17 @@ public class TagWebApiService : ITagWebApiService
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<TagModel>> GetAllTagsAsync(string userId)
+    public async Task<IReadOnlyList<TagModel>> GetAllTagsAsync()
     {
-        var url = $"api/tags?userId={Uri.EscapeDataString(userId)}";
-        var tags = await this.httpClient.GetFromJsonAsync<List<TagModel>>(url);
+        var tags = await this.httpClient.GetFromJsonAsync<List<TagModel>>("api/tags");
 
         return tags ?? new List<TagModel>();
     }
 
     /// <inheritdoc/>
-    public async Task<PagedResult<TodoTask>> GetTasksByTagAsync(int tagId, string userId, int pageNumber, int pageSize)
+    public async Task<PagedResult<TodoTask>> GetTasksByTagAsync(int tagId, int pageNumber, int pageSize)
     {
-        var url = $"api/tags/{tagId}/tasks?userId={Uri.EscapeDataString(userId)}&pageNumber={pageNumber}&pageSize={pageSize}";
+        var url = $"api/tags/{tagId}/tasks?pageNumber={pageNumber}&pageSize={pageSize}";
         var page = await this.httpClient.GetFromJsonAsync<PagedResult<TodoTaskWebApiModel>>(url);
 
         return new PagedResult<TodoTask>
@@ -58,19 +57,17 @@ public class TagWebApiService : ITagWebApiService
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<TagModel>> GetTagsForTaskAsync(int taskId, string userId)
+    public async Task<IReadOnlyList<TagModel>> GetTagsForTaskAsync(int taskId)
     {
-        var url = $"api/tasks/{taskId}/tags?userId={Uri.EscapeDataString(userId)}";
-        var tags = await this.httpClient.GetFromJsonAsync<List<TagModel>>(url);
+        var tags = await this.httpClient.GetFromJsonAsync<List<TagModel>>($"api/tasks/{taskId}/tags");
 
         return tags ?? new List<TagModel>();
     }
 
     /// <inheritdoc/>
-    public async Task<TagModel> AddTagToTaskAsync(int taskId, string userId, string tagName)
+    public async Task<TagModel> AddTagToTaskAsync(int taskId, string tagName)
     {
-        var url = $"api/tasks/{taskId}/tags?userId={Uri.EscapeDataString(userId)}";
-        var response = await this.httpClient.PostAsJsonAsync(url, new TagModel { Name = tagName });
+        using var response = await this.httpClient.PostAsJsonAsync($"api/tasks/{taskId}/tags", new TagModel { Name = tagName });
         response.EnsureSuccessStatusCode();
 
         var tag = await response.Content.ReadFromJsonAsync<TagModel>();
@@ -79,10 +76,9 @@ public class TagWebApiService : ITagWebApiService
     }
 
     /// <inheritdoc/>
-    public async Task<bool> RemoveTagFromTaskAsync(int taskId, int tagId, string userId)
+    public async Task<bool> RemoveTagFromTaskAsync(int taskId, int tagId)
     {
-        var url = $"api/tasks/{taskId}/tags/{tagId}?userId={Uri.EscapeDataString(userId)}";
-        using var response = await this.httpClient.DeleteAsync(new Uri(url, UriKind.Relative));
+        using var response = await this.httpClient.DeleteAsync(new Uri($"api/tasks/{taskId}/tags/{tagId}", UriKind.Relative));
         response.EnsureSuccessStatusCode();
 
         return true;

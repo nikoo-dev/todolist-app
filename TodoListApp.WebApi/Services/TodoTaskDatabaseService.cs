@@ -31,6 +31,7 @@ public class TodoTaskDatabaseService : ITodoTaskDatabaseService
         }
 
         var query = this.context.TodoTasks
+            .AsNoTracking()
             .Where(t => t.TodoListId == todoListId)
             .OrderBy(t => t.DueDate);
 
@@ -54,9 +55,10 @@ public class TodoTaskDatabaseService : ITodoTaskDatabaseService
     }
 
     /// <inheritdoc/>
-    public async Task<TodoTask?> GetTaskAsync(int id, string ownerId)
+    public async Task<TodoTask?> GetTaskAsync(int id, string userId)
     {
-        var entity = await this.FindOwnedTaskQuery(ownerId)
+        var entity = await this.FindAccessibleTaskQuery(userId)
+            .AsNoTracking()
             .FirstOrDefaultAsync(t => t.Id == id);
 
         return entity is null ? null : ToModel(entity);
@@ -107,6 +109,11 @@ public class TodoTaskDatabaseService : ITodoTaskDatabaseService
         entity.Description = task.Description;
         entity.DueDate = task.DueDate;
         entity.Status = task.Status;
+        if (!string.IsNullOrWhiteSpace(task.AssigneeId))
+        {
+            entity.AssigneeId = task.AssigneeId;
+        }
+
         await this.context.SaveChangesAsync();
 
         return true;
@@ -139,6 +146,7 @@ public class TodoTaskDatabaseService : ITodoTaskDatabaseService
         int pageSize)
     {
         var query = this.context.TodoTasks
+            .AsNoTracking()
             .Include(t => t.TodoList)
             .Include(t => t.Tags)
             .Include(t => t.Comments)
@@ -197,6 +205,7 @@ public class TodoTaskDatabaseService : ITodoTaskDatabaseService
         int pageSize)
     {
         var query = this.context.TodoTasks
+            .AsNoTracking()
             .Include(t => t.TodoList)
             .Include(t => t.Tags)
             .Include(t => t.Comments)
@@ -255,4 +264,11 @@ public class TodoTaskDatabaseService : ITodoTaskDatabaseService
             .Include(t => t.Tags)
             .Include(t => t.Comments)
             .Where(t => t.TodoList != null && t.TodoList.OwnerId == ownerId);
+
+    private IQueryable<TodoTaskEntity> FindAccessibleTaskQuery(string userId) =>
+        this.context.TodoTasks
+            .Include(t => t.TodoList)
+            .Include(t => t.Tags)
+            .Include(t => t.Comments)
+            .Where(t => t.AssigneeId == userId || (t.TodoList != null && t.TodoList.OwnerId == userId));
 }

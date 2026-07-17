@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using TodoListApp.WebApp.Models;
 
@@ -20,19 +21,17 @@ public class CommentWebApiService : ICommentWebApiService
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<CommentModel>> GetCommentsAsync(int taskId, string userId)
+    public async Task<IReadOnlyList<CommentModel>> GetCommentsAsync(int taskId)
     {
-        var url = $"api/tasks/{taskId}/comments?userId={Uri.EscapeDataString(userId)}";
-        var comments = await this.httpClient.GetFromJsonAsync<List<CommentModel>>(url);
+        var comments = await this.httpClient.GetFromJsonAsync<List<CommentModel>>($"api/tasks/{taskId}/comments");
 
         return comments ?? new List<CommentModel>();
     }
 
     /// <inheritdoc/>
-    public async Task<CommentModel> AddCommentAsync(int taskId, string userId, string text)
+    public async Task<CommentModel> AddCommentAsync(int taskId, string text)
     {
-        var url = $"api/tasks/{taskId}/comments?userId={Uri.EscapeDataString(userId)}";
-        var response = await this.httpClient.PostAsJsonAsync(url, new CommentModel { Text = text });
+        using var response = await this.httpClient.PostAsJsonAsync($"api/tasks/{taskId}/comments", new CommentModel { Text = text });
         response.EnsureSuccessStatusCode();
 
         var comment = await response.Content.ReadFromJsonAsync<CommentModel>();
@@ -41,12 +40,11 @@ public class CommentWebApiService : ICommentWebApiService
     }
 
     /// <inheritdoc/>
-    public async Task<bool> UpdateCommentAsync(int commentId, string userId, string text)
+    public async Task<bool> UpdateCommentAsync(int commentId, string text)
     {
-        var url = $"api/comments/{commentId}?userId={Uri.EscapeDataString(userId)}";
-        using var response = await this.httpClient.PutAsJsonAsync(url, new CommentModel { Text = text });
+        using var response = await this.httpClient.PutAsJsonAsync($"api/comments/{commentId}", new CommentModel { Text = text });
 
-        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        if (response.StatusCode == HttpStatusCode.NotFound)
         {
             return false;
         }
@@ -57,12 +55,11 @@ public class CommentWebApiService : ICommentWebApiService
     }
 
     /// <inheritdoc/>
-    public async Task<bool> DeleteCommentAsync(int commentId, string userId)
+    public async Task<bool> DeleteCommentAsync(int commentId)
     {
-        var url = $"api/comments/{commentId}?userId={Uri.EscapeDataString(userId)}";
-        using var response = await this.httpClient.DeleteAsync(new Uri(url, UriKind.Relative));
+        using var response = await this.httpClient.DeleteAsync(new Uri($"api/comments/{commentId}", UriKind.Relative));
 
-        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        if (response.StatusCode == HttpStatusCode.NotFound)
         {
             return false;
         }

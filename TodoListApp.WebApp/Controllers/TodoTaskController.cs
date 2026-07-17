@@ -1,7 +1,8 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using TodoListApp.WebApp.Data;
 using TodoListApp.WebApp.Logging;
 using TodoListApp.WebApp.Models;
@@ -41,10 +42,6 @@ public class TodoTaskController : Controller
         this.logger = logger;
     }
 
-    private string CurrentUserId =>
-        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
-        ?? throw new InvalidOperationException("The current user identifier could not be resolved.");
-
     /// <summary>
     /// Shows the list of tasks in the specified to-do list.
     /// </summary>
@@ -54,13 +51,13 @@ public class TodoTaskController : Controller
     [HttpGet]
     public async Task<IActionResult> Index(int todoListId, int pageNumber = 1)
     {
-        var page = await this.taskService.GetTasksAsync(todoListId, this.CurrentUserId, pageNumber, PageSize);
+        var page = await this.taskService.GetTasksAsync(todoListId, pageNumber, PageSize);
         if (page is null)
         {
             return this.NotFound();
         }
 
-        var todoList = await this.todoListService.GetTodoListAsync(todoListId, this.CurrentUserId);
+        var todoList = await this.todoListService.GetTodoListAsync(todoListId);
         this.ViewBag.TodoListId = todoListId;
         this.ViewBag.TodoListTitle = todoList?.Title ?? string.Empty;
 
@@ -75,7 +72,7 @@ public class TodoTaskController : Controller
     [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
-        var task = await this.taskService.GetTaskAsync(id, this.CurrentUserId);
+        var task = await this.taskService.GetTaskAsync(id);
         if (task is null)
         {
             return this.NotFound();
@@ -110,7 +107,6 @@ public class TodoTaskController : Controller
 
         var created = await this.taskService.AddTaskAsync(
             model.TodoListId,
-            this.CurrentUserId,
             new TodoTask
             {
                 Title = model.Title,
@@ -135,11 +131,13 @@ public class TodoTaskController : Controller
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
-        var task = await this.taskService.GetTaskAsync(id, this.CurrentUserId);
+        var task = await this.taskService.GetTaskAsync(id);
         if (task is null)
         {
             return this.NotFound();
         }
+
+        this.ViewBag.Assignees = await this.GetAssigneeSelectListAsync(task.AssigneeId);
 
         return this.View(await this.ToViewModelAsync(task));
     }
@@ -158,11 +156,11 @@ public class TodoTaskController : Controller
 
         if (!this.ModelState.IsValid)
         {
+            this.ViewBag.Assignees = await this.GetAssigneeSelectListAsync(model.AssigneeId);
             return this.View(model);
         }
 
         var updated = await this.taskService.UpdateTaskAsync(
-            this.CurrentUserId,
             new TodoTask
             {
                 Id = id,
@@ -170,6 +168,7 @@ public class TodoTaskController : Controller
                 Description = model.Description,
                 DueDate = model.DueDate,
                 Status = model.Status,
+                AssigneeId = model.AssigneeId,
             });
 
         if (!updated)
@@ -188,7 +187,7 @@ public class TodoTaskController : Controller
     [HttpGet]
     public async Task<IActionResult> Delete(int id)
     {
-        var task = await this.taskService.GetTaskAsync(id, this.CurrentUserId);
+        var task = await this.taskService.GetTaskAsync(id);
         if (task is null)
         {
             return this.NotFound();
@@ -208,7 +207,7 @@ public class TodoTaskController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id, int todoListId)
     {
-        await this.taskService.DeleteTaskAsync(id, this.CurrentUserId);
+        await this.taskService.DeleteTaskAsync(id);
         this.logger.TaskDeleted(id);
 
         return this.RedirectToAction(nameof(this.Index), new { todoListId });
@@ -228,10 +227,22 @@ public class TodoTaskController : Controller
             Status = task.Status,
             TodoListId = task.TodoListId,
             TodoListTitle = task.TodoListTitle,
+            AssigneeId = task.AssigneeId,
             AssigneeName = assignee?.DisplayName ?? task.AssigneeId,
             TagCount = task.TagCount,
             CommentCount = task.CommentCount,
             IsOverdue = task.IsOverdue,
         };
+    }
+
+    private async Task<SelectList> GetAssigneeSelectListAsync(string selectedId)
+    {
+        var users = await this.userManager.Users
+            .AsNoTracking()
+            .OrderBy(u => u.DisplayName)
+            .Select(u => new { u.Id, u.DisplayName })
+            .ToListAsync();
+
+        return new SelectList(users, nameof(ApplicationUser.Id), nameof(ApplicationUser.DisplayName), selectedId);
     }
 }

@@ -31,29 +31,28 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddSingleton<IEmailSender, LoggingEmailSender>();
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
+builder.Services.AddTransient<ApiAuthDelegatingHandler>();
+
 var apiBaseUrl = builder.Configuration["TodoListWebApi:BaseUrl"] ?? "http://localhost:5143/";
-var apiKey = builder.Configuration["TodoListWebApi:ApiKey"] ?? string.Empty;
 
 builder.Services.AddHttpClient<ITodoListWebApiService, TodoListWebApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
-    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
-});
+}).AddHttpMessageHandler<ApiAuthDelegatingHandler>();
 builder.Services.AddHttpClient<ITodoTaskWebApiService, TodoTaskWebApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
-    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
-});
+}).AddHttpMessageHandler<ApiAuthDelegatingHandler>();
 builder.Services.AddHttpClient<ITagWebApiService, TagWebApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
-    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
-});
+}).AddHttpMessageHandler<ApiAuthDelegatingHandler>();
 builder.Services.AddHttpClient<ICommentWebApiService, CommentWebApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
-    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
-});
+}).AddHttpMessageHandler<ApiAuthDelegatingHandler>();
 
 var app = builder.Build();
 

@@ -25,6 +25,7 @@ public class CommentDatabaseService : ICommentDatabaseService
     public async Task<IEnumerable<CommentModel>?> GetCommentsForTaskAsync(int taskId, string userId)
     {
         var task = await this.context.TodoTasks
+            .AsNoTracking()
             .Include(t => t.TodoList)
             .Include(t => t.Comments)
             .FirstOrDefaultAsync(t => t.Id == taskId);
@@ -64,9 +65,9 @@ public class CommentDatabaseService : ICommentDatabaseService
     }
 
     /// <inheritdoc/>
-    public async Task<bool> UpdateCommentAsync(int commentId, string ownerId, string text)
+    public async Task<bool> UpdateCommentAsync(int commentId, string userId, string text)
     {
-        var comment = await this.FindOwnedCommentQuery(ownerId)
+        var comment = await this.FindEditableCommentQuery(userId)
             .FirstOrDefaultAsync(c => c.Id == commentId);
 
         if (comment is null)
@@ -81,9 +82,9 @@ public class CommentDatabaseService : ICommentDatabaseService
     }
 
     /// <inheritdoc/>
-    public async Task<bool> DeleteCommentAsync(int commentId, string ownerId)
+    public async Task<bool> DeleteCommentAsync(int commentId, string userId)
     {
-        var comment = await this.FindOwnedCommentQuery(ownerId)
+        var comment = await this.FindEditableCommentQuery(userId)
             .FirstOrDefaultAsync(c => c.Id == commentId);
 
         if (comment is null)
@@ -109,9 +110,13 @@ public class CommentDatabaseService : ICommentDatabaseService
         CreatedDate = entity.CreatedDate,
     };
 
-    private IQueryable<CommentEntity> FindOwnedCommentQuery(string ownerId) =>
+    /// <summary>
+    /// Finds a comment the specified user is allowed to edit or delete: either the to-do list owner
+    /// (per US24/US25) or the comment's own author.
+    /// </summary>
+    private IQueryable<CommentEntity> FindEditableCommentQuery(string userId) =>
         this.context.Comments
             .Include(c => c.Task)
                 .ThenInclude(t => t!.TodoList)
-            .Where(c => c.Task != null && c.Task.TodoList != null && c.Task.TodoList.OwnerId == ownerId);
+            .Where(c => c.AuthorId == userId || (c.Task != null && c.Task.TodoList != null && c.Task.TodoList.OwnerId == userId));
 }

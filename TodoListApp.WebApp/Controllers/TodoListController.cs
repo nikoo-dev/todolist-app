@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TodoListApp.WebApp.Logging;
@@ -29,10 +28,6 @@ public class TodoListController : Controller
         this.logger = logger;
     }
 
-    private string CurrentUserId =>
-        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
-        ?? throw new InvalidOperationException("The current user identifier could not be resolved.");
-
     /// <summary>
     /// Shows the list of to-do lists owned by the current user.
     /// </summary>
@@ -41,7 +36,7 @@ public class TodoListController : Controller
     [HttpGet]
     public async Task<IActionResult> Index(int pageNumber = 1)
     {
-        var page = await this.todoListService.GetTodoListsAsync(this.CurrentUserId, pageNumber, PageSize);
+        var page = await this.todoListService.GetTodoListsAsync(pageNumber, PageSize);
 
         return this.View(page);
     }
@@ -69,7 +64,7 @@ public class TodoListController : Controller
             return this.View(model);
         }
 
-        await this.todoListService.AddTodoListAsync(this.CurrentUserId, new TodoList
+        await this.todoListService.AddTodoListAsync(new TodoList
         {
             Title = model.Title,
             Description = model.Description,
@@ -86,7 +81,7 @@ public class TodoListController : Controller
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
-        var todoList = await this.todoListService.GetTodoListAsync(id, this.CurrentUserId);
+        var todoList = await this.todoListService.GetTodoListAsync(id);
         if (todoList is null)
         {
             return this.NotFound();
@@ -118,7 +113,7 @@ public class TodoListController : Controller
             return this.View(model);
         }
 
-        var updated = await this.todoListService.UpdateTodoListAsync(this.CurrentUserId, new TodoList
+        var updated = await this.todoListService.UpdateTodoListAsync(new TodoList
         {
             Id = id,
             Title = model.Title,
@@ -141,7 +136,7 @@ public class TodoListController : Controller
     [HttpGet]
     public async Task<IActionResult> Delete(int id)
     {
-        var todoList = await this.todoListService.GetTodoListAsync(id, this.CurrentUserId);
+        var todoList = await this.todoListService.GetTodoListAsync(id);
         if (todoList is null)
         {
             return this.NotFound();
@@ -160,7 +155,7 @@ public class TodoListController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        await this.todoListService.DeleteTodoListAsync(id, this.CurrentUserId);
+        await this.todoListService.DeleteTodoListAsync(id);
         this.logger.TodoListDeleted(id);
 
         return this.RedirectToAction(nameof(this.Index));
