@@ -1,6 +1,7 @@
 using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using TodoListApp.WebApi.Logging;
 
 namespace TodoListApp.WebApi.Middleware;
 
@@ -40,7 +41,7 @@ public class ExceptionHandlingMiddleware
         catch (Exception ex)
 #pragma warning restore CA1031
         {
-            this.logger.LogError(ex, "Unhandled exception while processing {Method} {Path}.", context.Request.Method, context.Request.Path);
+            this.logger.UnhandledException(ex, context.Request.Method, context.Request.Path);
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsJsonAsync(new { error = "An unexpected error occurred." });

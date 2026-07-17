@@ -30,5 +30,5 @@ public class PaginationViewModel
     /// <summary>
     /// Gets or sets additional route values (such as filters) to preserve across page links.
     /// </summary>
-    public RouteValueDictionary RouteValues { get; set; } = new();
+    public RouteValueDictionary RouteValues { get; } = new RouteValueDictionary();
 }

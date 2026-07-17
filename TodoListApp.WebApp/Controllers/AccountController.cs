@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TodoListApp.WebApp.Data;
+using TodoListApp.WebApp.Logging;
 using TodoListApp.WebApp.Models.Account;
 
 namespace TodoListApp.WebApp.Controllers;
@@ -49,6 +50,8 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterModel model)
     {
+        ArgumentNullException.ThrowIfNull(model);
+
         if (!this.ModelState.IsValid)
         {
             return this.View(model);
@@ -72,7 +75,7 @@ public class AccountController : Controller
             return this.View(model);
         }
 
-        this.logger.LogInformation("User {Email} registered a new account.", model.Email);
+        this.logger.UserRegistered(model.Email);
         await this.signInManager.SignInAsync(user, isPersistent: false);
 
         return this.RedirectToAction("Index", "TodoList");
@@ -85,6 +88,10 @@ public class AccountController : Controller
     /// <returns>The sign-in view.</returns>
     [HttpGet]
     [AllowAnonymous]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+        "Design",
+        "CA1054:URI-like parameters should not be strings",
+        Justification = "This is only ever a relative local path round-tripped through a query string; a System.Uri offers no benefit and complicates model binding.")]
     public IActionResult Login(string? returnUrl = null) => this.View(new LoginModel { ReturnUrl = returnUrl });
 
     /// <summary>
@@ -97,6 +104,8 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginModel model)
     {
+        ArgumentNullException.ThrowIfNull(model);
+
         if (!this.ModelState.IsValid)
         {
             return this.View(model);
@@ -109,7 +118,7 @@ public class AccountController : Controller
             return this.View(model);
         }
 
-        this.logger.LogInformation("User {Email} signed in.", model.Email);
+        this.logger.UserSignedIn(model.Email);
 
         if (!string.IsNullOrEmpty(model.ReturnUrl) && this.Url.IsLocalUrl(model.ReturnUrl))
         {
@@ -128,7 +137,7 @@ public class AccountController : Controller
     public async Task<IActionResult> Logout()
     {
         await this.signInManager.SignOutAsync();
-        this.logger.LogInformation("User signed out.");
+        this.logger.UserSignedOut();
 
         return this.RedirectToAction(nameof(this.Login));
     }
@@ -151,6 +160,8 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ForgotPassword(ForgotPasswordModel model)
     {
+        ArgumentNullException.ThrowIfNull(model);
+
         if (!this.ModelState.IsValid)
         {
             return this.View(model);
@@ -170,7 +181,7 @@ public class AccountController : Controller
             new { email = model.Email, token },
             this.Request.Scheme);
 
-        this.logger.LogInformation("Password reset requested for {Email}. Reset link: {ResetUrl}", model.Email, resetUrl);
+        this.logger.PasswordResetRequested(model.Email, resetUrl);
 
         this.TempData["ResetPasswordUrl"] = resetUrl;
 
@@ -206,6 +217,8 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ResetPassword(ResetPasswordModel model)
     {
+        ArgumentNullException.ThrowIfNull(model);
+
         if (!this.ModelState.IsValid)
         {
             return this.View(model);
@@ -229,7 +242,7 @@ public class AccountController : Controller
             return this.View(model);
         }
 
-        this.logger.LogInformation("Password reset for {Email}.", model.Email);
+        this.logger.PasswordReset(model.Email);
 
         return this.RedirectToAction(nameof(this.ResetPasswordConfirmation));
     }

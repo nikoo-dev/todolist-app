@@ -18,5 +18,5 @@ public class TagEntity
     /// <summary>
     /// Gets or sets the tasks that are tagged with this tag.
     /// </summary>
-    public ICollection<TodoTaskEntity> Tasks { get; set; } = new List<TodoTaskEntity>();
+    public ICollection<TodoTaskEntity> Tasks { get; } = new List<TodoTaskEntity>();
 }

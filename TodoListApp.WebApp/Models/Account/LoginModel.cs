@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TodoListApp.WebApp.Models.Account;
 
@@ -32,5 +33,9 @@ public class LoginModel
     /// <summary>
     /// Gets or sets the URL to return to after a successful sign-in.
     /// </summary>
+    [SuppressMessage(
+        "Design",
+        "CA1056:URI-like properties should not be strings",
+        Justification = "This is only ever a relative local path round-tripped through a hidden form field and query string; a System.Uri offers no benefit and complicates model binding.")]
     public string? ReturnUrl { get; set; }
 }

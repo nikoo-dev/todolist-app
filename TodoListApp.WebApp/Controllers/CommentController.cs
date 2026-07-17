@@ -23,6 +23,10 @@ public class CommentController : Controller
         this.commentService = commentService;
     }
 
+    private string CurrentUserId =>
+        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? throw new InvalidOperationException("The current user identifier could not be resolved.");
+
     /// <summary>
     /// Adds a new comment to a task.
     /// </summary>
@@ -61,6 +65,8 @@ public class CommentController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(CommentModel model)
     {
+        ArgumentNullException.ThrowIfNull(model);
+
         if (!this.ModelState.IsValid)
         {
             return this.View(model);
@@ -85,8 +91,4 @@ public class CommentController : Controller
 
         return this.RedirectToAction("Details", "TodoTask", new { id = taskId });
     }
-
-    private string CurrentUserId =>
-        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
-        ?? throw new InvalidOperationException("The current user identifier could not be resolved.");
 }

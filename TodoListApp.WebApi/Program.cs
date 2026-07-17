@@ -70,16 +70,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-/// <summary>
-/// The entry point class, exposed for integration testing.
-/// </summary>
-public partial class Program
-{
-    /// <summary>
-    /// Prevents direct instantiation while remaining usable as a generic type argument.
-    /// </summary>
-    protected Program()
-    {
-    }
-}

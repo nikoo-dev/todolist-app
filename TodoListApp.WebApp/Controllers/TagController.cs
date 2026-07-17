@@ -24,6 +24,10 @@ public class TagController : Controller
         this.tagService = tagService;
     }
 
+    private string CurrentUserId =>
+        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? throw new InvalidOperationException("The current user identifier could not be resolved.");
+
     /// <summary>
     /// Shows the list of all tags.
     /// </summary>
@@ -83,8 +87,4 @@ public class TagController : Controller
 
         return this.RedirectToAction("Details", "TodoTask", new { id = taskId });
     }
-
-    private string CurrentUserId =>
-        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
-        ?? throw new InvalidOperationException("The current user identifier could not be resolved.");
 }

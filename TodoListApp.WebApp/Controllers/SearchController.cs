@@ -25,6 +25,10 @@ public class SearchController : Controller
         this.taskService = taskService;
     }
 
+    private string CurrentUserId =>
+        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? throw new InvalidOperationException("The current user identifier could not be resolved.");
+
     /// <summary>
     /// Shows the search page.
     /// </summary>
@@ -51,8 +55,4 @@ public class SearchController : Controller
 
         return this.View(page);
     }
-
-    private string CurrentUserId =>
-        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
-        ?? throw new InvalidOperationException("The current user identifier could not be resolved.");
 }

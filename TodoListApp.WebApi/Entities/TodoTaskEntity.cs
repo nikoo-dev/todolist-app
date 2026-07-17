@@ -53,10 +53,10 @@ public class TodoTaskEntity
     /// <summary>
     /// Gets or sets the tags added to the task.
     /// </summary>
-    public ICollection<TagEntity> Tags { get; set; } = new List<TagEntity>();
+    public ICollection<TagEntity> Tags { get; } = new List<TagEntity>();
 
     /// <summary>
     /// Gets or sets the comments added to the task.
     /// </summary>
-    public ICollection<CommentEntity> Comments { get; set; } = new List<CommentEntity>();
+    public ICollection<CommentEntity> Comments { get; } = new List<CommentEntity>();
 }

@@ -71,6 +71,6 @@ else
                  Action = "Index",
                  CurrentPage = this.Model.PageNumber,
                  TotalPages = this.Model.TotalPages,
-                 RouteValues = new Microsoft.AspNetCore.Routing.RouteValueDictionary { ["statusFilter"] = statusFilter, ["sortBy"] = sortBy },
+                 RouteValues = { ["statusFilter"] = statusFilter, ["sortBy"] = sortBy },
              })" />
 }

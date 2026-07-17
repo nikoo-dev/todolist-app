@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TodoListApp.WebApp.Data;
+using TodoListApp.WebApp.Logging;
 using TodoListApp.WebApp.Models;
 using TodoListApp.WebApp.Services;
 
@@ -39,6 +40,10 @@ public class TodoTaskController : Controller
         this.userManager = userManager;
         this.logger = logger;
     }
+
+    private string CurrentUserId =>
+        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? throw new InvalidOperationException("The current user identifier could not be resolved.");
 
     /// <summary>
     /// Shows the list of tasks in the specified to-do list.
@@ -96,6 +101,8 @@ public class TodoTaskController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Add(TodoTaskModel model)
     {
+        ArgumentNullException.ThrowIfNull(model);
+
         if (!this.ModelState.IsValid)
         {
             return this.View(model);
@@ -147,6 +154,8 @@ public class TodoTaskController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, TodoTaskModel model)
     {
+        ArgumentNullException.ThrowIfNull(model);
+
         if (!this.ModelState.IsValid)
         {
             return this.View(model);
@@ -200,7 +209,7 @@ public class TodoTaskController : Controller
     public async Task<IActionResult> DeleteConfirmed(int id, int todoListId)
     {
         await this.taskService.DeleteTaskAsync(id, this.CurrentUserId);
-        this.logger.LogInformation("Task {TaskId} deleted.", id);
+        this.logger.TaskDeleted(id);
 
         return this.RedirectToAction(nameof(this.Index), new { todoListId });
     }
@@ -225,8 +234,4 @@ public class TodoTaskController : Controller
             IsOverdue = task.IsOverdue,
         };
     }
-
-    private string CurrentUserId =>
-        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
-        ?? throw new InvalidOperationException("The current user identifier could not be resolved.");
 }

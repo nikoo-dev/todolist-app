@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TodoListApp.WebApi.Logging;
 using TodoListApp.WebApi.Models;
 using TodoListApp.WebApi.Services;
 
@@ -110,7 +111,7 @@ public class TodoListController : ControllerBase
             OwnerId = userId,
         });
 
-        this.logger.LogInformation("To-do list {TodoListId} created by user {UserId}.", todoList.Id, userId);
+        this.logger.TodoListCreated(todoList.Id, userId);
 
         return this.CreatedAtAction(nameof(this.GetTodoList), new { id = todoList.Id, userId }, ToApiModel(todoList));
     }
@@ -171,7 +172,7 @@ public class TodoListController : ControllerBase
             return this.NotFound();
         }
 
-        this.logger.LogInformation("To-do list {TodoListId} deleted by user {UserId}.", id, userId);
+        this.logger.TodoListDeleted(id, userId);
 
         return this.NoContent();
     }

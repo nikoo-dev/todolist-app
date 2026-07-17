@@ -45,6 +45,6 @@ else
                  Action = "Index",
                  CurrentPage = this.Model.PageNumber,
                  TotalPages = this.Model.TotalPages,
-                 RouteValues = new Microsoft.AspNetCore.Routing.RouteValueDictionary { ["todoListId"] = todoListId },
+                 RouteValues = { ["todoListId"] = todoListId },
              })" />
 }

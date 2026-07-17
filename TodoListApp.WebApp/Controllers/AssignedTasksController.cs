@@ -25,6 +25,10 @@ public class AssignedTasksController : Controller
         this.taskService = taskService;
     }
 
+    private string CurrentUserId =>
+        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? throw new InvalidOperationException("The current user identifier could not be resolved.");
+
     /// <summary>
     /// Shows the list of tasks assigned to the current user.
     /// </summary>
@@ -68,8 +72,4 @@ public class AssignedTasksController : Controller
 
         return this.RedirectToAction(nameof(this.Index), new { statusFilter, sortBy, pageNumber });
     }
-
-    private string CurrentUserId =>
-        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
-        ?? throw new InvalidOperationException("The current user identifier could not be resolved.");
 }

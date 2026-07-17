@@ -74,7 +74,7 @@ public class TagDatabaseService : ITagDatabaseService
             .Include(t => t.Tags)
             .FirstOrDefaultAsync(t => t.Id == taskId);
 
-        if (task is null || !this.HasAccess(task, userId))
+        if (task is null || !HasAccess(task, userId))
         {
             return null;
         }
@@ -104,7 +104,7 @@ public class TagDatabaseService : ITagDatabaseService
             .Include(t => t.Tags)
             .FirstOrDefaultAsync(t => t.Id == taskId);
 
-        if (task is null || !this.HasAccess(task, userId))
+        if (task is null || !HasAccess(task, userId))
         {
             return false;
         }
@@ -142,7 +142,7 @@ public class TagDatabaseService : ITagDatabaseService
         CommentCount = entity.Comments.Count,
     };
 
-    private bool HasAccess(TodoTaskEntity task, string userId) =>
+    private static bool HasAccess(TodoTaskEntity task, string userId) =>
         task.AssigneeId == userId || (task.TodoList != null && task.TodoList.OwnerId == userId);
 
     private IQueryable<TodoTaskEntity> FindAccessibleTaskQuery(string userId) =>

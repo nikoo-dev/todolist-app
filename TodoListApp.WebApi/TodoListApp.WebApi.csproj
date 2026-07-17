@@ -8,6 +8,13 @@
     <AnalysisMode>AllEnabledByDefault</AnalysisMode>
     <AnalysisLevel>latest</AnalysisLevel>
     <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
+    <!--
+      CA1515 ("make internal") is not actionable here: entities, models, and service interfaces all
+      flow through public controller action signatures, and ASP.NET Core requires controllers to stay
+      public for MVC's controller-discovery to find them. Making the DTOs internal produces
+      CS0050/CS0051 accessibility-mismatch compile errors, not a cleaner design.
+    -->
+    <NoWarn>$(NoWarn);CA1515</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

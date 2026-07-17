@@ -28,5 +28,5 @@ public class TodoListEntity
     /// <summary>
     /// Gets or sets the tasks that belong to the to-do list.
     /// </summary>
-    public ICollection<TodoTaskEntity> Tasks { get; set; } = new List<TodoTaskEntity>();
+    public ICollection<TodoTaskEntity> Tasks { get; } = new List<TodoTaskEntity>();
 }

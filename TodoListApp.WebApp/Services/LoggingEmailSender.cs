@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity.UI.Services;
+using TodoListApp.WebApp.Logging;
 
 namespace TodoListApp.WebApp.Services;
 
@@ -22,11 +23,7 @@ public class LoggingEmailSender : IEmailSender
     /// <inheritdoc/>
     public Task SendEmailAsync(string email, string subject, string htmlMessage)
     {
-        this.logger.LogInformation(
-            "Email suppressed (no SMTP configured). To: {Email}, Subject: {Subject}, Body: {Body}",
-            email,
-            subject,
-            htmlMessage);
+        this.logger.EmailSuppressed(email, subject, htmlMessage);
 
         return Task.CompletedTask;
     }

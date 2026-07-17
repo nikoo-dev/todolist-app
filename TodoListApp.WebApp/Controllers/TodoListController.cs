@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TodoListApp.WebApp.Logging;
 using TodoListApp.WebApp.Models;
 using TodoListApp.WebApp.Services;
 
@@ -27,6 +28,10 @@ public class TodoListController : Controller
         this.todoListService = todoListService;
         this.logger = logger;
     }
+
+    private string CurrentUserId =>
+        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? throw new InvalidOperationException("The current user identifier could not be resolved.");
 
     /// <summary>
     /// Shows the list of to-do lists owned by the current user.
@@ -57,6 +62,8 @@ public class TodoListController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Add(TodoListModel model)
     {
+        ArgumentNullException.ThrowIfNull(model);
+
         if (!this.ModelState.IsValid)
         {
             return this.View(model);
@@ -104,6 +111,8 @@ public class TodoListController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, TodoListModel model)
     {
+        ArgumentNullException.ThrowIfNull(model);
+
         if (!this.ModelState.IsValid)
         {
             return this.View(model);
@@ -152,12 +161,8 @@ public class TodoListController : Controller
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         await this.todoListService.DeleteTodoListAsync(id, this.CurrentUserId);
-        this.logger.LogInformation("To-do list {TodoListId} deleted.", id);
+        this.logger.TodoListDeleted(id);
 
         return this.RedirectToAction(nameof(this.Index));
     }
-
-    private string CurrentUserId =>
-        this.User.FindFirstValue(ClaimTypes.NameIdentifier)
-        ?? throw new InvalidOperationException("The current user identifier could not be resolved.");
 }
