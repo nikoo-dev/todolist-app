@@ -14,9 +14,10 @@ builder.Services.AddDbContext<UsersDbContext>(options => options.UseSqlite(users
 builder.Services
     .AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
-        options.Password.RequiredLength = 6;
-        options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequireUppercase = false;
+        // Password.* is left at ASP.NET Core Identity's own defaults (min length 6, requires an
+        // uppercase letter, a lowercase letter, a digit, and a non-alphanumeric character).
+        // RequireConfirmedAccount stays false because this environment has no real mail server to
+        // deliver a confirmation link through (see LoggingEmailSender).
         options.SignIn.RequireConfirmedAccount = false;
     })
     .AddEntityFrameworkStores<UsersDbContext>()
