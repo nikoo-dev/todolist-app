@@ -8,23 +8,23 @@
     <form asp-controller="Account" asp-action="Register" method="post">
         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
         <div class="mb-3">
-            <label asp-for="DisplayName" for="DisplayName" class="form-label"></label>
-            <input asp-for="DisplayName" id="DisplayName" class="form-control" autocomplete="name" />
+            <label for="DisplayName" class="form-label">Display Name</label>
+            <input type="text" id="DisplayName" name="DisplayName" class="form-control" autocomplete="name" maxlength="100" data-val="true" data-val-length="Display name must be at most 100 characters long." data-val-length-max="100" data-val-required="Display name is required." value="@this.Model.DisplayName" />
             <span asp-validation-for="DisplayName" class="text-danger"></span>
         </div>
         <div class="mb-3">
-            <label asp-for="Email" for="Email" class="form-label"></label>
-            <input asp-for="Email" id="Email" class="form-control" autocomplete="email" />
+            <label for="Email" class="form-label">Email</label>
+            <input type="email" id="Email" name="Email" class="form-control" autocomplete="email" data-val="true" data-val-email="Enter a valid email address." data-val-required="Email is required." value="@this.Model.Email" />
             <span asp-validation-for="Email" class="text-danger"></span>
         </div>
         <div class="mb-3">
-            <label asp-for="Password" for="Password" class="form-label"></label>
-            <input asp-for="Password" id="Password" class="form-control" autocomplete="new-password" />
+            <label for="Password" class="form-label">Password</label>
+            <input type="password" id="Password" name="Password" class="form-control" autocomplete="new-password" maxlength="100" data-val="true" data-val-length="Password must be at least 6 characters long." data-val-length-max="100" data-val-length-min="6" data-val-required="Password is required." />
             <span asp-validation-for="Password" class="text-danger"></span>
         </div>
         <div class="mb-3">
-            <label asp-for="ConfirmPassword" for="ConfirmPassword" class="form-label"></label>
-            <input asp-for="ConfirmPassword" id="ConfirmPassword" class="form-control" autocomplete="new-password" />
+            <label for="ConfirmPassword" class="form-label">Confirm Password</label>
+            <input type="password" id="ConfirmPassword" name="ConfirmPassword" class="form-control" autocomplete="new-password" data-val="true" data-val-equalto="The password and confirmation password do not match." data-val-equalto-other="*.Password" data-val-required="The Confirm Password field is required." />
             <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
         </div>
         <button type="submit" class="btn btn-primary w-100">Sign up</button>
